@@ -1,0 +1,12 @@
+{
+	"mcpServers": {
+		"random-mcp": {
+			"type": "http",
+			"url": "MCP_URL_VALUE",
+			"headers": {
+				"Authorization": "Bearer MCP_TOKEN_VALUE"
+			},
+			"protocolEra": "auto"
+		}
+	}
+}
