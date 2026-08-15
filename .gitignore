@@ -1,1 +1,9 @@
+# cache
 node_modules/
+.wrangler/
+# configurations contains secret
+inspector.dev.json
+inspector.prd.json
+# secret
+.dev.vars
+.prd.vars
