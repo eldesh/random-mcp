@@ -104,6 +104,11 @@ npm install
 
 ```dotenv
 MCP_TOKEN=<ローカル開発用トークン>
+GITHUB_CLIENT_ID=<GitHub OAuth App の Client ID>
+GITHUB_CLIENT_SECRET=<GitHub OAuth App の Client secret>
+# 任意: 許可するアカウントを制限する場合
+# GITHUB_ALLOWED_LOGIN=<許可する GitHub ログイン名>
+# GITHUB_ALLOWED_ID=<許可する GitHub ユーザーID>
 ```
 
 トークンは、例えば次のコマンドで生成できます。
@@ -207,6 +212,15 @@ npx wrangler login
 
 ```sh
 npx wrangler secret put MCP_TOKEN
+npx wrangler secret put GITHUB_CLIENT_ID
+npx wrangler secret put GITHUB_CLIENT_SECRET
+```
+
+必要に応じて、認可可能なGitHubアカウントを固定するSecretも登録します。
+
+```sh
+npx wrangler secret put GITHUB_ALLOWED_LOGIN
+npx wrangler secret put GITHUB_ALLOWED_ID
 ```
 
 デプロイします。

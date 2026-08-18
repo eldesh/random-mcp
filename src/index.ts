@@ -1,10 +1,12 @@
+import {
+  OAuthProvider,
+} from "@cloudflare/workers-oauth-provider";
 import { McpServer } from "@modelcontextprotocol/server";
 import { createMcpHandler } from "agents/mcp/server";
 import { z } from "zod";
+import type { Env } from "./env";
 
-type Env = {
-  MCP_TOKEN: string;
-};
+import authHandler from "./auth-handler";
 
 const TWO_POW_53 = 9_007_199_254_740_992;
 
@@ -317,7 +319,7 @@ function createServer() {
         "binomial: {trials,probability}",
         "poisson: {lambda}",
       ].join(" "),
-      inputSchema: {
+      inputSchema: z.object({
         distribution: z.enum([
           "uniform",
           "normal",
@@ -332,7 +334,7 @@ function createServer() {
           z.number().finite(),
         ),
         count: z.number().int().min(1).max(100).default(1),
-      },
+      }),
     },
     async ({ distribution, parameters, count }) => {
       if (
@@ -369,29 +371,32 @@ const mcpHandler = createMcpHandler(createServer, {
   route: "/mcp",
 });
 
-export default {
+const mcpApiHandler = {
   async fetch(
     request: Request,
     env: Env,
-    context: ExecutionContext,
+    ctx: ExecutionContext,
   ): Promise<Response> {
-    if (new URL(request.url).pathname !== "/mcp") {
-      return new Response("Not found", { status: 404 });
-    }
-
-    if (
-      request.method !== "OPTIONS" &&
-      request.headers.get("Authorization") !==
-        `Bearer ${env.MCP_TOKEN}`
-    ) {
-      return new Response("Unauthorized", {
-        status: 401,
-        headers: {
-          "WWW-Authenticate": "Bearer",
-        },
-      });
-    }
-
-    return mcpHandler(request, env, context);
+    return mcpHandler(request, env, ctx);
   },
-} satisfies ExportedHandler<Env>;
+};
+
+export default new OAuthProvider<Env>({
+  apiRoute: "/mcp",
+  apiHandler: mcpApiHandler,
+  defaultHandler: authHandler,
+  authorizeEndpoint: "/authorize",
+  tokenEndpoint: "/oauth/token",
+  clientRegistrationEndpoint: "/oauth/register",
+  scopesSupported: ["mcp:use"],
+  resourceMetadata: {
+    resource:
+      "https://random-mcp.eldesh-tools.workers.dev/mcp",
+    authorization_servers: [
+      "https://random-mcp.eldesh-tools.workers.dev",
+    ],
+    scopes_supported: ["mcp:use"],
+    bearer_methods_supported: ["header"],
+    resource_name: "random-mcp",
+  },
+});
