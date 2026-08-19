@@ -166,7 +166,7 @@ npm run dev
 http://localhost:8787/mcp
 ```
 
-> [INFO!]
+> [!NOTE]
 > Wrangler が `Request.cf` を取得できないという警告を表示しても、最後に `Ready on http://localhost:8787` と表示され、このプロジェクトが `Request.cf` を使用していなければ動作確認を続けられます。
 
 ## MCP Inspector による動作確認
@@ -211,7 +211,7 @@ npm run deploy
 https://random-mcp.<subdomain>.workers.dev/mcp
 ```
 
-> [INFO!]
+> [!IMPORTANT]
 > `.dev.vars` は Cloudflare へ自動的には反映されません。本番 Worker は Cloudflare Secret に登録した値を参照します。
 
 ## ライセンス
