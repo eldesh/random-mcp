@@ -11,20 +11,20 @@ Cloudflare Workers 上で動作する、乱数生成用の MCP（Model Context P
 乱数源には Web Crypto API を使用します。整数生成では、剰余による偏りを避けるため rejection sampling を行います。ただし、暗号鍵や認証トークンの生成を目的とした API ではありません。
 
 
-## Notion AIへの接続
+## Notion AI への接続
 
 1. Settings > Connections > MCP > Custom MCP を選択します
-1. MCP server URL にデプロイしたURLを指定します(既存サービス: https://random-mcp.eldesh-tools.workers.dev/mcp)
-1. 次のように各項目を埋めます
-    - Name: Notion内で識別するための名前 (例: random-mcp)
-    - Authentication: Bearer token
-    - Prefix: Bearer
-    - Token: .prd.vars に書いたMCP_TOKEN
+1. MCP server URL にデプロイした URL を指定します（既存サービス: `https://random-mcp.eldesh-tools.workers.dev/mcp`）
+1. 次のように各項目を埋めて `Connect` します
+    - Name: Notion 内で識別するための名前（例: `random-mcp`）
+    - Authentication: OAuth
+1. アクセス許可画面で `Approve` を選択します
+1. GitHub にサインインし、GitHub OAuth App による認証を完了します
 1. ツールが表示されたら、必要なツールを有効化します
-1. 承認なしで呼び出す場合は、実行設定を`Run automatically`に変更します
+1. Notion AI からツール実行ごとの確認なしで呼び出したい場合は、実行設定を `Run automatically` に変更します
 
 ## Agent への指示
-Agentの指示には例えば次のように追加し、乱択が必要な際に必ず random-mcp が使われるようにします。
+Agent の指示には例えば次のように追加し、乱択が必要な際に必ず random-mcp が使われるようにします。
 
 ```text
 ## 乱択
@@ -36,7 +36,9 @@ Agentの指示には例えば次のように追加し、乱択が必要な際に
 
 ## 機能
 
-サーバーは `/mcp` で Streamable HTTP 接続を受け付け、Bearer トークンで認証します。
+サーバーは `/mcp` で Streamable HTTP 接続を受け付けます。MCP クライアントとの認可には OAuth 2.1、ユーザーの認証には GitHub OAuth を使用します。固定の Bearer トークンを事前に発行する必要はありません。
+
+認可時には、MCP クライアントのアクセス許可画面を表示した後、GitHub の認証画面へ移動します。GitHub から取得する権限は `read:user` です。認可済みの MCP クライアントには `mcp:use` スコープのアクセストークンが発行されます。
 
 ### `random_int`
 
@@ -88,9 +90,8 @@ Agentの指示には例えば次のように追加し、乱択が必要な際に
 
 - Node.js 22.19.0以上
 - npm
-- GNU Make
-- GNU m4
-- Cloudflareアカウント（デプロイする場合）
+- GitHub アカウント
+- Cloudflare アカウント（デプロイする場合）
 
 依存関係をインストールします。
 
@@ -100,22 +101,38 @@ npm install
 
 ## ローカル開発
 
-プロジェクト直下に`.dev.vars`を作成します。
+### GitHub OAuth App の作成
+
+[GitHub の Developer settings](https://github.com/settings/developers) で OAuth App を作成します。ローカル環境と本番環境ではコールバック URL が異なるため、それぞれ別の OAuth App を作成します。
+
+ローカル開発用 OAuth App には次の値を設定します。
+
+- Homepage URL: `http://localhost:8787`
+- Authorization callback URL: `http://localhost:8787/callback`
+
+本番用 OAuth App では、`http://localhost:8787` の部分をデプロイ先 Worker のオリジンに置き換えます。既存サービスのコールバック URL は `https://random-mcp.eldesh-tools.workers.dev/callback` です。
+
+作成後、Client ID と Client secret を取得します。このアプリケーションが GitHub に要求する OAuth スコープは `read:user` です。
+
+### 環境変数
+
+プロジェクト直下に `.dev.vars` を作成します。
 
 ```dotenv
-MCP_TOKEN=<ローカル開発用トークン>
 GITHUB_CLIENT_ID=<GitHub OAuth App の Client ID>
 GITHUB_CLIENT_SECRET=<GitHub OAuth App の Client secret>
-# 任意: 許可するアカウントを制限する場合
-# GITHUB_ALLOWED_LOGIN=<許可する GitHub ログイン名>
-# GITHUB_ALLOWED_ID=<許可する GitHub ユーザーID>
+COOKIE_ENCRYPTION_KEY=<Cookie の暗号化に使用するランダムな値>
 ```
 
-トークンは、例えば次のコマンドで生成できます。
+`COOKIE_ENCRYPTION_KEY` は、例えば次のコマンドで生成できます。
 
 ```sh
 openssl rand -hex 32
 ```
+
+OAuth の一時的な state は、`wrangler.jsonc` の `OAUTH_KV` バインディングで指定した Cloudflare KV に保存されます。別の Cloudflare アカウントへデプロイする場合は KV namespace を作成し、`wrangler.jsonc` の `id` をその namespace ID に置き換えてください。
+
+### 起動
 
 ローカルサーバーを起動します。
 
@@ -123,105 +140,56 @@ openssl rand -hex 32
 npm run dev
 ```
 
-通常、MCPエンドポイントは次のURLになります。
+通常、MCP エンドポイントは次の URL になります。
 
 ```text
 http://localhost:8787/mcp
 ```
 
 > [INFO!]
-> Wranglerが`Request.cf`を取得できないという警告を表示しても、最後に`Ready on http://localhost:8787`と表示され、このプロジェクトが`Request.cf`を使用していなければ動作確認を続けられます。
+> Wrangler が `Request.cf` を取得できないという警告を表示しても、最後に `Ready on http://localhost:8787` と表示され、このプロジェクトが `Request.cf` を使用していなければ動作確認を続けられます。
 
-## MCP-Inspectorの接続
+## MCP Inspector による動作確認
 
-MCP-Inspectorでレスポンスを確認するための設定ファイルを生成できます。
-
-```sh
-make inspector-dev
-make inspector-prd
-```
-
-これらのターゲットはそれぞれ`.dev.vars`または`.prd.vars`を読み込み、ローカルMCPサーバまたはデプロイ済みMCPサーバに接続するためのファイルを生成します。
-
-対応関係は次のとおりです。
-
-| Makeターゲット | 変数ファイル | 生成物 |
-| --- | --- | --- |
-| `inspector-dev` | `.dev.vars` | `inspector.dev.json` |
-| `inspector-prd` | `.prd.vars` | `inspector.prd.json` |
-
-本番用設定を生成する場合は、Makefileで`inspector.prd.json`に割り当てる`MCP_URL`を実際の公開URLへ変更し、`.prd.vars`に本番用の`MCP_TOKEN`を設定します。
-
-## MCP Inspectorによる動作確認
-
-### ツール一覧
-
-ローカルサーバーを起動した状態で、次を実行します。
+ローカルサーバーを起動した状態で MCP Inspector の Web UI を起動します。
 
 ```sh
-npx --yes @modelcontextprotocol/inspector@latest \
-  --cli \
-  --config ./inspector.dev.json \
-  --server random-mcp \
-  --method tools/list
+npx --yes @modelcontextprotocol/inspector@latest
 ```
 
-次の4ツールが表示されることを確認します。
+Inspector で Streamable HTTP を選択し、接続先に `http://localhost:8787/mcp` を指定します。接続時にブラウザで OAuth の認可フローが開始されるため、アクセスを許可して GitHub 認証を完了します。本番環境を確認する場合は、接続先をデプロイ済みの MCP URL に変更します。
+
+接続後、Tools 画面に次の4ツールが表示されることを確認します。
 
 - `random_int`
 - `random_double`
 - `random_choice`
 - `random_sample`
 
-### `random_choice`
+呼び出し例:
 
-```sh
-npx --yes @modelcontextprotocol/inspector@latest \
-  --cli \
-  --config ./inspector.dev.json \
-  --server random-mcp \
-  --method tools/call \
-  --tool-name random_choice \
-  --tool-args-json '{"choices":["A","B","C"],"weights":[1,2,1]}'
-```
+| ツール | 引数 |
+| --- | --- |
+| `random_choice` | `{"choices":["A","B","C"],"weights":[1,2,1]}` |
+| `random_sample` | `{"distribution":"uniform","parameters":{"min":5,"max":15},"count":3}` |
 
-### `random_sample`
+## Cloudflare Workers へのデプロイ
 
-```sh
-npx --yes @modelcontextprotocol/inspector@latest \
-  --cli \
-  --config ./inspector.dev.json \
-  --server random-mcp \
-  --method tools/call \
-  --tool-name random_sample \
-  --tool-args-json '{"distribution":"uniform","parameters":{"min":5,"max":15},"count":3}'
-```
-
-> [INFO!]
-> Inspector Webの入力フォームでは、配列やオブジェクトが文字列として送信される場合があります。その場合は、上記のようにCLIの`--tool-args-json`を使用します。
-
-## Cloudflare Workersへのデプロイ
-
-Cloudflareへログインします。
+Cloudflare へログインします。
 
 ```sh
 npx wrangler login
 ```
 
-本番用トークンをCloudflare Secretとして登録します。
+本番用 GitHub OAuth App の認証情報と Cookie 暗号化キーを Cloudflare Secret として登録します。
 
 ```sh
-npx wrangler secret put MCP_TOKEN
 npx wrangler secret put GITHUB_CLIENT_ID
 npx wrangler secret put GITHUB_CLIENT_SECRET
+npx wrangler secret put COOKIE_ENCRYPTION_KEY
 ```
 
-必要に応じて、認可可能なGitHubアカウントを固定するSecretも登録します。
-
-```sh
-npx wrangler secret put GITHUB_ALLOWED_LOGIN
-npx wrangler secret put GITHUB_ALLOWED_ID
-```
+GitHub OAuth App の Authorization callback URL がデプロイ先 Worker の `/callback` を指していることと、`wrangler.jsonc` の `OAUTH_KV` が利用可能な KV namespace を指していることを確認します。
 
 デプロイします。
 
@@ -229,14 +197,14 @@ npx wrangler secret put GITHUB_ALLOWED_ID
 npm run deploy
 ```
 
-公開URLは通常、次の形式です。
+公開 URL は通常、次の形式です。
 
 ```text
 https://random-mcp.<subdomain>.workers.dev/mcp
 ```
 
 > [INFO!]
-> `.dev.vars`と`.prd.vars`はCloudflareへ自動的には反映されません。本番WorkerはCloudflare Secretの`MCP_TOKEN`を参照します。
+> `.dev.vars` は Cloudflare へ自動的には反映されません。本番 Worker は Cloudflare Secret に登録した値を参照します。
 
 ## ライセンス
 
