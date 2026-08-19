@@ -1,15 +1,21 @@
 {
   "name": "random-mcp",
   "version": "1.0.0",
-  "description": "",
+  "description": "OAuth-protected MCP server for generating random values and probability distribution samples on Cloudflare Workers",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "random-number-generator",
+    "probability-distributions",
+    "cloudflare-workers"
+  ],
+  "author": "eldesh <nephits@gmail.com>",
   "license": "MIT",
   "type": "module",
   "dependencies": {
