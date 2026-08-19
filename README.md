@@ -11,7 +11,9 @@ Cloudflare Workers 上で動作する、乱数生成用の MCP（Model Context P
 乱数源には Web Crypto API を使用します。整数生成では、剰余による偏りを避けるため rejection sampling を行います。ただし、暗号鍵や認証トークンの生成を目的とした API ではありません。
 
 
-## Notion AI への接続
+## 使い方
+
+### Notion AI への接続
 
 1. Settings > Connections > MCP > Custom MCP を選択します
 1. MCP server URL にデプロイした URL を指定します（既存サービス: `https://random-mcp.eldesh-tools.workers.dev/mcp`）
@@ -23,7 +25,7 @@ Cloudflare Workers 上で動作する、乱数生成用の MCP（Model Context P
 1. ツールが表示されたら、必要なツールを有効化します
 1. Notion AI からツール実行ごとの確認なしで呼び出したい場合は、実行設定を `Run automatically` に変更します
 
-## Agent への指示
+### Agent への指示
 Agent の指示には例えば次のように追加し、乱択が必要な際に必ず random-mcp が使われるようにします。
 
 ```text
@@ -34,11 +36,16 @@ Agent の指示には例えば次のように追加し、乱択が必要な際�
 ```
 
 
-## 機能
+## 認証
 
 サーバーは `/mcp` で Streamable HTTP 接続を受け付けます。MCP クライアントとの認可には OAuth 2.1、ユーザーの認証には GitHub OAuth を使用します。
 
 認可時には、MCP クライアントのアクセス許可画面を表示した後、GitHub の認証画面へ移動します。GitHub から取得する権限は `read:user` です。認可済みの MCP クライアントには `mcp:use` スコープのアクセストークンが発行されます。
+
+## ツール
+
+random-mcp には以下に示す4つのツールがあり、それぞれ記載のフィールドを持つJSONオブジェクトを要求します。
+
 
 ### `random_int`
 
@@ -47,12 +54,16 @@ Agent の指示には例えば次のように追加し、乱択が必要な際�
 - `min`: 最小値
 - `max`: 最大値
 
+引数の例: `{"min": 5, "max": 10}`
+
 ### `random_double`
 
 指定範囲内の浮動小数点数を1個生成します。
 
 - `min`: 最小値
 - `max`: 最大値
+
+引数の例: `{"min": 1.41421, "max": 3.14159}`
 
 ### `random_choice`
 
@@ -62,6 +73,9 @@ Agent の指示には例えば次のように追加し、乱択が必要な際�
 - `weights`: 各候補の相対的な重み。省略時は等確率
 
 `weights`を指定する場合は、`choices`と要素数を一致させ、少なくとも一つを正の値にします。
+
+引数の例: `{"choices":["A","B","C"],"weights":[1,2,1]}`
+
 
 ### `random_sample`
 
@@ -85,6 +99,8 @@ Agent の指示には例えば次のように追加し、乱択が必要な際�
 
 - 二項分布: `trials`は0以上100,000以下の安全な整数で、`trials * count <= 100000`
 - ポアソン分布: `lambda`は0以上100以下で、`lambda * count <= 10000`
+
+引数の例: `{"distribution":"uniform","parameters":{"min":5,"max":15},"count":3}`
 
 ## 開発環境
 
@@ -159,14 +175,7 @@ npx --yes @modelcontextprotocol/inspector@latest
 
 Inspector で Streamable HTTP を選択し、接続先に `http://localhost:8787/mcp` を指定します。接続時にブラウザで OAuth の認可フローが開始されるため、アクセスを許可して GitHub 認証を完了します。本番環境を確認する場合は、接続先をデプロイ済みの MCP URL に変更します。
 
-接続後、Tools 画面に[機能](#機能)で示されているAPIが表示されることを確認します。
-
-呼び出し例:
-
-| ツール | 引数 |
-| --- | --- |
-| `random_choice` | `{"choices":["A","B","C"],"weights":[1,2,1]}` |
-| `random_sample` | `{"distribution":"uniform","parameters":{"min":5,"max":15},"count":3}` |
+接続後、Tools 画面に[ツール](#ツール)で示されているものが表示されることを確認します。
 
 ## Cloudflare Workers へのデプロイ
 
