@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="./icon.svg" alt="random-mcp icon" width="128" height="128">
+</p>
+
 # random-mcp
 
 Cloudflare Workers 上で動作する、乱数生成用の MCP（Model Context Protocol）サーバーです。Notion Agent などの MCP クライアントから、整数・浮動小数点数・重み付き選択・各種確率分布の標本を生成できます。
