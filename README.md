@@ -216,4 +216,4 @@ https://random-mcp.<subdomain>.workers.dev/mcp
 
 ## ライセンス
 
-ライセンスは未指定です。公開または再配布する場合は、目的に応じたライセンスを追加してください。
+[MIT License](LICENSE) の下で公開しています。
