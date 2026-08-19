@@ -36,7 +36,7 @@ Agent の指示には例えば次のように追加し、乱択が必要な際�
 
 ## 機能
 
-サーバーは `/mcp` で Streamable HTTP 接続を受け付けます。MCP クライアントとの認可には OAuth 2.1、ユーザーの認証には GitHub OAuth を使用します。固定の Bearer トークンを事前に発行する必要はありません。
+サーバーは `/mcp` で Streamable HTTP 接続を受け付けます。MCP クライアントとの認可には OAuth 2.1、ユーザーの認証には GitHub OAuth を使用します。
 
 認可時には、MCP クライアントのアクセス許可画面を表示した後、GitHub の認証画面へ移動します。GitHub から取得する権限は `read:user` です。認可済みの MCP クライアントには `mcp:use` スコープのアクセストークンが発行されます。
 
@@ -159,12 +159,7 @@ npx --yes @modelcontextprotocol/inspector@latest
 
 Inspector で Streamable HTTP を選択し、接続先に `http://localhost:8787/mcp` を指定します。接続時にブラウザで OAuth の認可フローが開始されるため、アクセスを許可して GitHub 認証を完了します。本番環境を確認する場合は、接続先をデプロイ済みの MCP URL に変更します。
 
-接続後、Tools 画面に次の4ツールが表示されることを確認します。
-
-- `random_int`
-- `random_double`
-- `random_choice`
-- `random_sample`
+接続後、Tools 画面に[機能](#機能)で示されているAPIが表示されることを確認します。
 
 呼び出し例:
 
