@@ -147,7 +147,7 @@ COOKIE_ENCRYPTION_KEY=<Cookie の暗号化に使用するランダムな値>
 openssl rand -hex 32
 ```
 
-OAuth の一時的な state は、`wrangler.jsonc` の `OAUTH_KV` バインディングで指定した Cloudflare KV に保存されます。別の Cloudflare アカウントへデプロイする場合は KV namespace を作成し、`wrangler.jsonc` の `id` をその namespace ID に置き換えてください。
+OAuth の一時的な state は、`wrangler.jsonc` の `OAUTH_KV` バインディングで指定した Cloudflare KV に保存されます。新規に Cloudflare アカウントへデプロイする場合は KV namespace を作成し、`wrangler.jsonc` の `id` をその namespace ID に置き換えてください。
 
 ### 起動
 
@@ -166,7 +166,7 @@ http://localhost:8787/mcp
 > [!NOTE]
 > Wrangler が `Request.cf` を取得できないという警告を表示しても、最後に `Ready on http://localhost:8787` と表示され、このプロジェクトが `Request.cf` を使用していなければ動作確認を続けられます。
 
-## MCP Inspector による動作確認
+### MCP Inspector による動作確認
 
 ローカルサーバーを起動した状態で MCP Inspector の Web UI を起動します。
 
@@ -177,6 +177,10 @@ npx --yes @modelcontextprotocol/inspector@latest
 Inspector で Streamable HTTP を選択し、接続先に `http://localhost:8787/mcp` を指定します。接続時にブラウザで OAuth の認可フローが開始されるため、アクセスを許可して GitHub 認証を完了します。本番環境を確認する場合は、接続先をデプロイ済みの MCP URL に変更します。
 
 接続後、Tools 画面に[ツール](#ツール)で示されているものが表示されることを確認します。
+
+> [!IMPORTANT]
+> 2026/08/20現在の MCP Inspector では random_int, random_double による入力型に対応したWebUIフォームは導出されません。
+> これらのツールの動作確認をする場合は MCP Inspector の CLI などを利用してください。
 
 ## Cloudflare Workers へのデプロイ
 
