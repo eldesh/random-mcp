@@ -321,25 +321,11 @@ function createServer() {
     "random_int",
     {
       description:
-        "Return a uniformly distributed integer. Both min and max are inclusive.",
-      inputSchema: {
-        min: z.number().int(),
-        max: z.number().int(),
-      },
-    },
-    async ({ min, max }) =>
-      result({ value: randomIntInclusive(min, max) }),
-  );
-
-  server.registerTool(
-    "random_ints",
-    {
-      description:
         "Return uniformly distributed integers. Both min and max are inclusive.",
       inputSchema: {
         min: z.number().int(),
         max: z.number().int(),
-        count: batchCountSchema,
+        count: batchCountSchema.default(1),
       },
     },
     async ({ min, max, count }) =>
@@ -355,25 +341,11 @@ function createServer() {
     "random_double",
     {
       description:
-        "Return a uniformly distributed number in the half-open interval [min, max).",
-      inputSchema: {
-        min: z.number().finite(),
-        max: z.number().finite(),
-      },
-    },
-    async ({ min, max }) =>
-      result({ value: randomDoubleValue(min, max) }),
-  );
-
-  server.registerTool(
-    "random_doubles",
-    {
-      description:
         "Return uniformly distributed numbers in the half-open interval [min, max).",
       inputSchema: {
         min: z.number().finite(),
         max: z.number().finite(),
-        count: batchCountSchema,
+        count: batchCountSchema.default(1),
       },
     },
     async ({ min, max, count }) =>
