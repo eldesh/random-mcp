@@ -93,6 +93,18 @@ function normal(mean: number, standardDeviation: number): number {
 
 const batchCountSchema = z.number().int().min(1).max(1000);
 
+const integerValuesOutputSchema = z.object({
+  values: z.array(z.number().int()),
+});
+
+const numberValuesOutputSchema = z.object({
+  values: z.array(z.number()),
+});
+
+const stringValuesOutputSchema = z.object({
+  values: z.array(z.string()),
+});
+
 const randomIntInputSchema = z.union([
   z.object({
     distribution: z.literal("uniform").default("uniform"),
@@ -310,7 +322,7 @@ function randomDoubleFromDistribution(input: RandomDoubleInput): number {
   }
 }
 
-function result(data: unknown) {
+function result<T extends Record<string, unknown>>(data: T) {
   return {
     content: [
       {
@@ -318,6 +330,7 @@ function result(data: unknown) {
         text: JSON.stringify(data),
       },
     ],
+    structuredContent: data,
   };
 }
 
@@ -340,6 +353,7 @@ function createServer() {
         "count is the number of values to generate and defaults to 1.",
       ].join(" "),
       inputSchema: randomIntInputSchema,
+      outputSchema: integerValuesOutputSchema,
     },
     async (input) => {
       if (
@@ -382,6 +396,7 @@ function createServer() {
         "count is the number of values to generate and defaults to 1.",
       ].join(" "),
       inputSchema: randomDoubleInputSchema,
+      outputSchema: numberValuesOutputSchema,
     },
     async (input) =>
       result({
@@ -403,6 +418,7 @@ function createServer() {
         count: batchCountSchema.default(1),
         with_replacement: z.boolean().default(true),
       }),
+      outputSchema: stringValuesOutputSchema,
     },
     async ({ choices, weights, count, with_replacement }) =>
       result({
