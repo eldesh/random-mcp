@@ -90,6 +90,8 @@ function normal(mean: number, standardDeviation: number): number {
   );
 }
 
+const batchCountSchema = z.number().int().min(1).max(1000);
+
 function probability(value: number): number {
   if (value < 0 || value > 1) {
     throw new Error("probability must be between 0 and 1");
@@ -278,6 +280,26 @@ function createServer() {
   );
 
   server.registerTool(
+    "random_ints",
+    {
+      description:
+        "Return uniformly distributed integers. Both min and max are inclusive.",
+      inputSchema: {
+        min: z.number().int(),
+        max: z.number().int(),
+        count: batchCountSchema,
+      },
+    },
+    async ({ min, max, count }) =>
+      result({
+        values: Array.from(
+          { length: count },
+          () => randomIntInclusive(min, max),
+        ),
+      }),
+  );
+
+  server.registerTool(
     "random_double",
     {
       description:
@@ -289,6 +311,26 @@ function createServer() {
     },
     async ({ min, max }) =>
       result({ value: randomDoubleValue(min, max) }),
+  );
+
+  server.registerTool(
+    "random_doubles",
+    {
+      description:
+        "Return uniformly distributed numbers in the half-open interval [min, max).",
+      inputSchema: {
+        min: z.number().finite(),
+        max: z.number().finite(),
+        count: batchCountSchema,
+      },
+    },
+    async ({ min, max, count }) =>
+      result({
+        values: Array.from(
+          { length: count },
+          () => randomDoubleValue(min, max),
+        ),
+      }),
   );
 
   server.registerTool(
