@@ -4,6 +4,7 @@ import {
 import { McpServer } from "@modelcontextprotocol/server";
 import { createMcpHandler } from "agents/mcp/server";
 import { z } from "zod";
+import packageJson from "../package.json";
 import type { Env } from "./env";
 import { GitHubHandler } from "./github-handler";
 
@@ -323,7 +324,7 @@ function result(data: unknown) {
 function createServer() {
   const server = new McpServer({
     name: "random-mcp",
-    version: "1.1.0",
+    version: packageJson.version,
   });
 
   server.registerTool(

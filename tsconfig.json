@@ -1,3 +1,6 @@
 {
-	"extends": "agents/tsconfig"
+	"extends": "agents/tsconfig",
+	"compilerOptions": {
+		"resolveJsonModule": true
+	}
 }
