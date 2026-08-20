@@ -62,7 +62,7 @@ random-mcp には以下に示す3つのツールがあり、それぞれ記載�
 | --- | --- | --- |
 | `uniform` | `min`, `max` | `min`以上`max`以下の整数一様分布 |
 | `bernoulli` | `probability` | 指定確率で1、それ以外は0 |
-| `binomial` | `trials`, `probability` | `trials`回の試行における成功回数 |
+| `binomial` | `trials`, `probability` | 成功確率を`probability`とする独立な試行を`trials`回行ったときの成功回数 |
 | `poisson` | `lambda` | 母数`lambda`のポアソン分布 |
 
 パラメーターの組み合わせには、次の制約があります。
