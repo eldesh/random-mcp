@@ -65,7 +65,7 @@ random-mcp には以下に示す3つのツールがあり、それぞれ記載�
 | `binomial` | `trials`, `probability` | `trials`回の試行における成功回数 |
 | `poisson` | `lambda` | 母数`lambda`のポアソン分布 |
 
-追加の計算量制限があります。
+パラメーターの組み合わせには、次の制約があります。
 
 - 二項分布: `trials`は0以上100,000以下の安全な整数で、`trials * count <= 100000`
 - ポアソン分布: `lambda`は0以上100以下で、`lambda * count <= 10000`
