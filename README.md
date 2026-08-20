@@ -48,28 +48,45 @@ Agent の指示には例えば次のように追加し、乱択が必要な際�
 
 ## ツール
 
-random-mcp には以下に示す4つのツールがあり、それぞれ記載のフィールドを持つJSONオブジェクトを要求します。
+random-mcp には以下に示す3つのツールがあり、それぞれ記載のフィールドを持つJSONオブジェクトを要求します。
 
 
 ### `random_int`
 
-指定範囲内の整数を指定数生成し、`values`配列で返します。
+整数値を取る確率分布から指定数の値を生成し、`values`配列で返します。
 
-- `min`: 最小値
-- `max`: 最大値
+- `distribution`: 確率分布名。省略時は`uniform`
 - `count`: 生成数。1以上1,000以下、既定値は1
 
-引数の例: `{"min": 5, "max": 10, "count": 20}`
+| `distribution` | 追加フィールド | 意味・制約 |
+| --- | --- | --- |
+| `uniform` | `min`, `max` | `min`以上`max`以下の整数一様分布 |
+| `bernoulli` | `probability` | 指定確率で1、それ以外は0 |
+| `binomial` | `trials`, `probability` | `trials`回の試行における成功回数 |
+| `poisson` | `lambda` | 母数`lambda`のポアソン分布 |
+
+追加の計算量制限があります。
+
+- 二項分布: `trials`は0以上100,000以下の安全な整数で、`trials * count <= 100000`
+- ポアソン分布: `lambda`は0以上100以下で、`lambda * count <= 10000`
+
+引数の例: `{"min":5,"max":10,"count":20}`
 
 ### `random_double`
 
-指定範囲内の浮動小数点数を指定数生成し、`values`配列で返します。
+実数値を取る確率分布から指定数の値を生成し、`values`配列で返します。
 
-- `min`: 最小値
-- `max`: 最大値
+- `distribution`: 確率分布名。省略時は`uniform`
 - `count`: 生成数。1以上1,000以下、既定値は1
 
-引数の例: `{"min": 1.41421, "max": 3.14159, "count": 20}`
+| `distribution` | 追加フィールド | 意味・制約 |
+| --- | --- | --- |
+| `uniform` | `min`, `max` | 半開区間`[min, max)`の連続一様分布 |
+| `normal` | `mean`, `standard_deviation` | 平均と標準偏差を指定した正規分布 |
+| `lognormal` | `mu`, `sigma` | `log(X)`が平均`mu`、標準偏差`sigma`の正規分布に従う対数正規分布 |
+| `exponential` | `rate` | 率`rate`の指数分布。`rate > 0` |
+
+引数の例: `{"distribution":"normal","mean":0,"standard_deviation":1,"count":20}`
 
 ### `random_choice`
 
@@ -85,31 +102,6 @@ random-mcp には以下に示す4つのツールがあり、それぞれ記載�
 
 引数の例: `{"choices":["A","B","C"],"weights":[1,2,1],"count":2,"with_replacement":false}`
 
-
-### `random_sample`
-
-指定した確率分布から複数の標本を生成します。
-
-- `distribution`: 確率分布名
-- `parameters`: 分布ごとのパラメーターを与えるフィールド名
-- `count`: 標本数。1以上100以下、既定値は1
-
-| `distribution` | `parameters` | 意味・制約 |
-| --- | --- | --- |
-| `uniform` | `min`, `max` | `min`から`max`までの連続一様分布 |
-| `normal` | `mean`, `standard_deviation` | 平均と標準偏差を指定した正規分布 |
-| `lognormal` | `mu`, `sigma` | `log(X)`が平均`mu`、標準偏差`sigma`の正規分布に従う対数正規分布 |
-| `exponential` | `rate` | 率`rate`の指数分布。`rate > 0` |
-| `bernoulli` | `probability` | 指定確率で1、それ以外は0 |
-| `binomial` | `trials`, `probability` | `trials`回の試行における成功回数 |
-| `poisson` | `lambda` | 母数`lambda`のポアソン分布 |
-
-追加の計算量制限があります。
-
-- 二項分布: `trials`は0以上100,000以下の安全な整数で、`trials * count <= 100000`
-- ポアソン分布: `lambda`は0以上100以下で、`lambda * count <= 10000`
-
-引数の例: `{"distribution":"uniform","parameters":{"min":5,"max":15},"count":3}`
 
 ## 開発環境
 

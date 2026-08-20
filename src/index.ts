@@ -92,25 +92,64 @@ function normal(mean: number, standardDeviation: number): number {
 
 const batchCountSchema = z.number().int().min(1).max(1000);
 
-function probability(value: number): number {
-  if (value < 0 || value > 1) {
-    throw new Error("probability must be between 0 and 1");
-  }
-  return value;
-}
+const randomIntInputSchema = z.union([
+  z.object({
+    distribution: z.literal("uniform").default("uniform"),
+    min: z.number().int(),
+    max: z.number().int(),
+    count: batchCountSchema.default(1),
+  }).refine(({ min, max }) => min <= max, {
+    message: "min must be less than or equal to max",
+  }),
+  z.object({
+    distribution: z.literal("bernoulli"),
+    probability: z.number().finite().min(0).max(1),
+    count: batchCountSchema.default(1),
+  }),
+  z.object({
+    distribution: z.literal("binomial"),
+    trials: z.number().int().min(0).max(100_000),
+    probability: z.number().finite().min(0).max(1),
+    count: batchCountSchema.default(1),
+  }),
+  z.object({
+    distribution: z.literal("poisson"),
+    lambda: z.number().finite().min(0).max(100),
+    count: batchCountSchema.default(1),
+  }),
+]);
 
-function parameter(
-  parameters: Record<string, number>,
-  name: string,
-): number {
-  const value = parameters[name];
+type RandomIntInput = z.infer<typeof randomIntInputSchema>;
 
-  if (value === undefined || !Number.isFinite(value)) {
-    throw new Error(`missing or invalid parameter: ${name}`);
-  }
+const randomDoubleInputSchema = z.union([
+  z.object({
+    distribution: z.literal("uniform").default("uniform"),
+    min: z.number().finite(),
+    max: z.number().finite(),
+    count: batchCountSchema.default(1),
+  }).refine(({ min, max }) => min < max, {
+    message: "min must be less than max",
+  }),
+  z.object({
+    distribution: z.literal("normal"),
+    mean: z.number().finite(),
+    standard_deviation: z.number().finite().min(0),
+    count: batchCountSchema.default(1),
+  }),
+  z.object({
+    distribution: z.literal("lognormal"),
+    mu: z.number().finite(),
+    sigma: z.number().finite().min(0),
+    count: batchCountSchema.default(1),
+  }),
+  z.object({
+    distribution: z.literal("exponential"),
+    rate: z.number().finite().positive(),
+    count: batchCountSchema.default(1),
+  }),
+]);
 
-  return value;
-}
+type RandomDoubleInput = z.infer<typeof randomDoubleInputSchema>;
 
 function validateWeights(choices: string[], weights?: number[]): void {
   if (weights === undefined) return;
@@ -201,71 +240,19 @@ function randomChoices(
   return values;
 }
 
-function sampleOne(
-  distribution: string,
-  parameters: Record<string, number>,
-): number {
-  switch (distribution) {
+function randomIntValue(input: RandomIntInput): number {
+  switch (input.distribution) {
     case "uniform":
-      return randomDoubleValue(
-        parameter(parameters, "min"),
-        parameter(parameters, "max"),
-      );
-
-    case "normal":
-      return normal(
-        parameter(parameters, "mean"),
-        parameter(parameters, "standard_deviation"),
-      );
-
-    case "lognormal": {
-      // muとsigmaはlog(X)が従う正規分布の母数
-      const value = Math.exp(
-        normal(
-          parameter(parameters, "mu"),
-          parameter(parameters, "sigma"),
-        ),
-      );
-
-      if (!Number.isFinite(value)) {
-        throw new Error("lognormal result overflowed");
-      }
-
-      return value;
-    }
-
-    case "exponential": {
-      const rate = parameter(parameters, "rate");
-      if (rate <= 0) {
-        throw new Error("rate must be positive");
-      }
-      return -Math.log1p(-unitRandom()) / rate;
-    }
+      return randomIntInclusive(input.min, input.max);
 
     case "bernoulli":
-      return unitRandom() <
-        probability(parameter(parameters, "probability"))
-        ? 1
-        : 0;
+      return unitRandom() < input.probability ? 1 : 0;
 
     case "binomial": {
-      const trials = parameter(parameters, "trials");
-      const p = probability(parameter(parameters, "probability"));
-
-      if (
-        !Number.isSafeInteger(trials) ||
-        trials < 0 ||
-        trials > 100_000
-      ) {
-        throw new Error(
-          "trials must be an integer between 0 and 100000",
-        );
-      }
-
       let successes = 0;
 
-      for (let i = 0; i < trials; i++) {
-        if (unitRandom() < p) {
+      for (let i = 0; i < input.trials; i++) {
+        if (unitRandom() < input.probability) {
           successes++;
         }
       }
@@ -274,16 +261,11 @@ function sampleOne(
     }
 
     case "poisson": {
-      const lambda = parameter(parameters, "lambda");
-
-      if (lambda < 0 || lambda > 100) {
-        throw new Error("lambda must be between 0 and 100");
-      }
-      if (lambda === 0) {
+      if (input.lambda === 0) {
         return 0;
       }
 
-      const threshold = Math.exp(-lambda);
+      const threshold = Math.exp(-input.lambda);
       let product = 1;
       let count = 0;
 
@@ -296,7 +278,34 @@ function sampleOne(
     }
 
     default:
-      throw new Error(`unsupported distribution: ${distribution}`);
+      throw new Error("unsupported integer distribution");
+  }
+}
+
+function randomDoubleFromDistribution(input: RandomDoubleInput): number {
+  switch (input.distribution) {
+    case "uniform":
+      return randomDoubleValue(input.min, input.max);
+
+    case "normal":
+      return normal(input.mean, input.standard_deviation);
+
+    case "lognormal": {
+      // muとsigmaはlog(X)が従う正規分布の母数
+      const value = Math.exp(normal(input.mu, input.sigma));
+
+      if (!Number.isFinite(value)) {
+        throw new Error("lognormal result overflowed");
+      }
+
+      return value;
+    }
+
+    case "exponential":
+      return -Math.log1p(-unitRandom()) / input.rate;
+
+    default:
+      throw new Error("unsupported real-valued distribution");
   }
 }
 
@@ -314,45 +323,70 @@ function result(data: unknown) {
 function createServer() {
   const server = new McpServer({
     name: "random-mcp",
-    version: "1.0.0",
+    version: "1.1.0",
   });
 
   server.registerTool(
     "random_int",
     {
-      description:
-        "Return uniformly distributed integers. Both min and max are inclusive.",
-      inputSchema: {
-        min: z.number().int(),
-        max: z.number().int(),
-        count: batchCountSchema.default(1),
-      },
+      description: [
+        "Generate one or more integers from an integer-valued distribution.",
+        "distribution defaults to uniform when omitted.",
+        "uniform: {min,max}, with both endpoints inclusive.",
+        "bernoulli: {probability}.",
+        "binomial: {trials,probability}.",
+        "poisson: {lambda}.",
+        "count is the number of values to generate and defaults to 1.",
+      ].join(" "),
+      inputSchema: randomIntInputSchema,
     },
-    async ({ min, max, count }) =>
-      result({
+    async (input) => {
+      if (
+        input.distribution === "binomial" &&
+        input.trials * input.count > 100_000
+      ) {
+        throw new Error(
+          "trials multiplied by count must not exceed 100000",
+        );
+      }
+
+      if (
+        input.distribution === "poisson" &&
+        input.lambda * input.count > 10_000
+      ) {
+        throw new Error(
+          "lambda multiplied by count must not exceed 10000",
+        );
+      }
+
+      return result({
         values: Array.from(
-          { length: count },
-          () => randomIntInclusive(min, max),
+          { length: input.count },
+          () => randomIntValue(input),
         ),
-      }),
+      });
+    },
   );
 
   server.registerTool(
     "random_double",
     {
-      description:
-        "Return uniformly distributed numbers in the half-open interval [min, max).",
-      inputSchema: {
-        min: z.number().finite(),
-        max: z.number().finite(),
-        count: batchCountSchema.default(1),
-      },
+      description: [
+        "Generate one or more numbers from a real-valued distribution.",
+        "distribution defaults to uniform when omitted.",
+        "uniform: {min,max}, using the half-open interval [min,max).",
+        "normal: {mean,standard_deviation}.",
+        "lognormal: {mu,sigma}, where log(X) is normal(mu,sigma).",
+        "exponential: {rate}.",
+        "count is the number of values to generate and defaults to 1.",
+      ].join(" "),
+      inputSchema: randomDoubleInputSchema,
     },
-    async ({ min, max, count }) =>
+    async (input) =>
       result({
         values: Array.from(
-          { length: count },
-          () => randomDoubleValue(min, max),
+          { length: input.count },
+          () => randomDoubleFromDistribution(input),
         ),
       }),
   );
@@ -378,64 +412,6 @@ function createServer() {
           weights,
         ),
       }),
-  );
-
-  server.registerTool(
-    "random_sample",
-    {
-      description: [
-        "Generate samples from a distribution.",
-        "uniform: {min,max}",
-        "normal: {mean,standard_deviation}",
-        "lognormal: {mu,sigma}, where log(X) is normal(mu,sigma)",
-        "exponential: {rate}",
-        "bernoulli: {probability}",
-        "binomial: {trials,probability}",
-        "poisson: {lambda}",
-      ].join(" "),
-      inputSchema: z.object({
-        distribution: z.enum([
-          "uniform",
-          "normal",
-          "lognormal",
-          "exponential",
-          "bernoulli",
-          "binomial",
-          "poisson",
-        ]),
-        parameters: z.record(
-          z.string(),
-          z.number().finite(),
-        ),
-        count: z.number().int().min(1).max(100).default(1),
-      }),
-    },
-    async ({ distribution, parameters, count }) => {
-      if (
-        distribution === "binomial" &&
-        parameter(parameters, "trials") * count > 100_000
-      ) {
-        throw new Error(
-          "trials multiplied by count must not exceed 100000",
-        );
-      }
-
-      if (
-        distribution === "poisson" &&
-        parameter(parameters, "lambda") * count > 10_000
-      ) {
-        throw new Error(
-          "lambda multiplied by count must not exceed 10000",
-        );
-      }
-
-      return result({
-        values: Array.from(
-          { length: count },
-          () => sampleOne(distribution, parameters),
-        ),
-      });
-    },
   );
 
   return server;
