@@ -91,14 +91,17 @@ random-mcp には以下に示す6つのツールがあり、それぞれ記載�
 
 ### `random_choice`
 
-候補から1要素を選択します。
+候補から指定数の要素を選択し、`values`配列で返します。
 
 - `choices`: 候補文字列の配列。1個以上1,000個以下
 - `weights`: 各候補の相対的な重み。省略時は等確率
+- `count`: 選択数。1以上1,000以下、既定値は1
+- `with_replacement`: 復元抽出では`true`、非復元抽出では`false`。既定値は`true`
 
 `weights`を指定する場合は、`choices`と要素数を一致させ、少なくとも一つを正の値にします。
+非復元抽出では、`count`を候補数以下にする必要があります。重みを指定する場合は、正の重みを持つ候補数以下にする必要もあります。
 
-引数の例: `{"choices":["A","B","C"],"weights":[1,2,1]}`
+引数の例: `{"choices":["A","B","C"],"weights":[1,2,1],"count":2,"with_replacement":false}`
 
 
 ### `random_sample`

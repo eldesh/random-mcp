@@ -112,13 +112,8 @@ function parameter(
   return value;
 }
 
-function weightedChoice(
-  choices: string[],
-  weights?: number[],
-): string {
-  if (weights === undefined) {
-    return choices[randomIntInclusive(0, choices.length - 1)];
-  }
+function validateWeights(choices: string[], weights?: number[]): void {
+  if (weights === undefined) return;
 
   if (weights.length !== choices.length) {
     throw new Error("weights must have the same length as choices");
@@ -136,17 +131,74 @@ function weightedChoice(
   if (!Number.isFinite(total) || total <= 0) {
     throw new Error("the sum of weights must be positive and finite");
   }
+}
+
+function weightedChoiceIndex(length: number, weights?: number[]): number {
+  if (weights === undefined) {
+    return randomIntInclusive(0, length - 1);
+  }
+
+  const total = weights.reduce((sum, weight) => sum + weight, 0);
 
   let target = unitRandom() * total;
+  let lastPositiveIndex = 0;
 
-  for (let i = 0; i < choices.length; i++) {
+  for (let i = 0; i < weights.length; i++) {
+    if (weights[i] > 0) lastPositiveIndex = i;
     target -= weights[i];
     if (target < 0) {
-      return choices[i];
+      return i;
     }
   }
 
-  return choices[choices.length - 1];
+  return lastPositiveIndex;
+}
+
+function randomChoices(
+  choices: string[],
+  count: number,
+  withReplacement: boolean,
+  weights?: number[],
+): string[] {
+  validateWeights(choices, weights);
+
+  if (withReplacement) {
+    return Array.from(
+      { length: count },
+      () => choices[weightedChoiceIndex(choices.length, weights)],
+    );
+  }
+
+  if (count > choices.length) {
+    throw new Error(
+      "count must not exceed the number of choices when sampling without replacement",
+    );
+  }
+
+  if (
+    weights !== undefined &&
+    count > weights.filter((weight) => weight > 0).length
+  ) {
+    throw new Error(
+      "count must not exceed the number of positive weights when sampling without replacement",
+    );
+  }
+
+  const remainingChoices = [...choices];
+  const remainingWeights = weights === undefined ? undefined : [...weights];
+  const values: string[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const index = weightedChoiceIndex(
+      remainingChoices.length,
+      remainingWeights,
+    );
+    values.push(remainingChoices[index]);
+    remainingChoices.splice(index, 1);
+    remainingWeights?.splice(index, 1);
+  }
+
+  return values;
 }
 
 function sampleOne(
@@ -337,14 +389,23 @@ function createServer() {
     "random_choice",
     {
       description:
-        "Select one string from choices. Optional weights select proportionally to nonnegative weights.",
+        "Select strings from choices. Optional weights select proportionally to nonnegative weights. Set with_replacement to false to prevent the same choice position from being selected more than once.",
       inputSchema: z.object({
         choices: z.array(z.string()).min(1).max(1000),
         weights: z.array(z.number().finite()).max(1000).optional(),
+        count: batchCountSchema.default(1),
+        with_replacement: z.boolean().default(true),
       }),
     },
-    async ({ choices, weights }) =>
-      result({ value: weightedChoice(choices, weights) }),
+    async ({ choices, weights, count, with_replacement }) =>
+      result({
+        values: randomChoices(
+          choices,
+          count,
+          with_replacement,
+          weights,
+        ),
+      }),
   );
 
   server.registerTool(
