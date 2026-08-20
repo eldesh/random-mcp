@@ -330,7 +330,7 @@ function createServer() {
     "random_int",
     {
       description: [
-        "Generate one or more integers from an integer-valued distribution.",
+        "Generate one or more integer results from the selected probability distribution.",
         "distribution defaults to uniform when omitted.",
         "uniform: {min,max}, with both endpoints inclusive.",
         "bernoulli: {probability}.",
@@ -372,7 +372,7 @@ function createServer() {
     "random_double",
     {
       description: [
-        "Generate one or more numbers from a real-valued distribution.",
+        "Generate one or more floating-point results from the selected probability distribution.",
         "distribution defaults to uniform when omitted.",
         "uniform: {min,max}, using the half-open interval [min,max).",
         "normal: {mean,standard_deviation}.",
