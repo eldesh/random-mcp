@@ -32,6 +32,8 @@ test("renderLandingPage renders the current toolset and request origin", () => {
 	assert.match(html, /random_double/);
 	assert.match(html, /random_choice/);
 	assert.doesNotMatch(html, /random_sample/);
+	assert.match(html, /<style>:root \{/);
+	assert.doesNotMatch(html, /\{\{[A-Z_]+\}\}/);
 	assert.match(
 		html,
 		/<span class="heading-phrase">MCPクライアントへ<\/span><wbr><span class="heading-phrase">追加する<\/span>/,
