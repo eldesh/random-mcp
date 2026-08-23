@@ -6,6 +6,8 @@
 
 Cloudflare Workers 上で動作する、乱数生成用の MCP（Model Context Protocol）サーバーです。Notion Agent などの MCP クライアントから、整数・浮動小数点数・重み付き選択・各種確率分布の標本を生成できます。
 
+公式サイト: [https://random-mcp.eldesh-tools.workers.dev/](https://random-mcp.eldesh-tools.workers.dev/)
+
 ## 目的
 
 言語モデル自身に乱数を選ばせず、外部の乱数生成処理を MCP ツールとして呼び出せるようにすることを目的としています。
@@ -16,14 +18,6 @@ Cloudflare Workers 上で動作する、乱数生成用の MCP（Model Context P
 
 
 ## 使い方
-
-### サービス説明ページ
-
-公開サービスのトップページでは、機能、ツール、接続方法を日本語と英語で案内しています。`Accept-Language` に応じて表示言語を選択し、ページ上部から手動で切り替えることもできます。
-
-- [自動選択](https://random-mcp.eldesh-tools.workers.dev/)
-- [日本語](https://random-mcp.eldesh-tools.workers.dev/ja/)
-- [English](https://random-mcp.eldesh-tools.workers.dev/en/)
 
 ### Notion AI への接続
 
