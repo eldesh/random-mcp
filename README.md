@@ -17,6 +17,14 @@ Cloudflare Workers 上で動作する、乱数生成用の MCP（Model Context P
 
 ## 使い方
 
+### サービス説明ページ
+
+公開サービスのトップページでは、機能、ツール、接続方法を日本語と英語で案内しています。`Accept-Language` に応じて表示言語を選択し、ページ上部から手動で切り替えることもできます。
+
+- [自動選択](https://random-mcp.eldesh-tools.workers.dev/)
+- [日本語](https://random-mcp.eldesh-tools.workers.dev/ja/)
+- [English](https://random-mcp.eldesh-tools.workers.dev/en/)
+
 ### Notion AI への接続
 
 1. Settings > Connections > MCP > Custom MCP を選択します
@@ -162,6 +170,8 @@ npm run dev
 ```text
 http://localhost:8787/mcp
 ```
+
+ランディングページは `http://localhost:8787/` で確認できます。日本語ページは `/ja/`、英語ページは `/en/` です。
 
 > [!NOTE]
 > Wrangler が `Request.cf` を取得できないという警告を表示しても、最後に `Ready on http://localhost:8787` と表示され、このプロジェクトが `Request.cf` を使用していなければ動作確認を続けられます。

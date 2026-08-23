@@ -1,6 +1,7 @@
 {
 	"extends": "agents/tsconfig",
 	"compilerOptions": {
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
+		"types": ["node", "@cloudflare/workers-types"]
 	}
 }

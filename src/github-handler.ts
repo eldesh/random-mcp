@@ -3,6 +3,7 @@ import type { AuthRequest, OAuthHelpers } from "@cloudflare/workers-oauth-provid
 import { Hono } from "hono";
 import { Octokit } from "octokit";
 import { fetchUpstreamAuthToken, getUpstreamAuthorizeUrl, type Props } from "./utils";
+import { landingPageResponse, preferredLocale } from "./landing-page";
 import {
 	addApprovedClient,
 	bindStateToSession,
@@ -27,6 +28,24 @@ const serverIcon = `
 	<circle cx="23" cy="41" r="3.5" fill="#111827"/>
 	<circle cx="41" cy="41" r="3.5" fill="#111827"/>
 </svg>`;
+
+app.get("/", (c) => {
+	const locale = preferredLocale(c.req.header("Accept-Language") ?? null);
+
+	return new Response(null, {
+		status: 302,
+		headers: {
+			"Cache-Control": "private, no-store",
+			Location: `/${locale}/`,
+			Vary: "Accept-Language",
+		},
+	});
+});
+
+app.get("/ja", (c) => Response.redirect(new URL("/ja/", c.req.url), 308));
+app.get("/en", (c) => Response.redirect(new URL("/en/", c.req.url), 308));
+app.get("/ja/", (c) => landingPageResponse(c.req.raw, "ja"));
+app.get("/en/", (c) => landingPageResponse(c.req.raw, "en"));
 
 app.get("/icon.svg", () =>
 	new Response(serverIcon, {

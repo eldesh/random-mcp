@@ -4,7 +4,7 @@
   "description": "OAuth-protected MCP server for generating random values and probability distribution samples on Cloudflare Workers",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-strip-types --test src/*.test.ts",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"
   },
@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260815.1",
+    "@types/node": "^26.2.0",
     "typescript": "^7.0.2",
     "wrangler": "^4.123.0"
   }
