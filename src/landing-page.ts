@@ -113,14 +113,14 @@ const content: Record<Locale, LandingPageContent> = {
 		languageName: "日本語",
 		otherLanguageName: "English",
 		eyebrow: "MCPサーバー · Cloudflare Workers",
-		title: "AIエージェントに、信頼できる乱数を。",
+		title: "AIエージェントに、\n信頼できる\n乱数を。",
 		lead:
 			"乱択を言語モデルの予測に委ねません。random-mcpはWeb Crypto APIを使用し、整数・実数の確率分布、重み付き選択、複数標本の生成をMCPツールとして提供します。",
 		endpointLabel: "MCPエンドポイント",
 		endpointHint: "OAuthに対応したMCPクライアントへ、このURLを登録してください。",
 		githubLabel: "GitHubでソースを見る",
 		toolsLabel: "ツール",
-		toolsTitle: "小さく、目的の明確なツールセット",
+		toolsTitle: "小さく、\n目的の明確な\nツールセット",
 		toolsIntroduction:
 			"3つのツールで一般的な乱択処理を扱います。すべてのツールはcountフィールドによる複数結果の生成に対応しています。",
 		tools: [
@@ -147,7 +147,7 @@ const content: Record<Locale, LandingPageContent> = {
 			},
 		],
 		whyLabel: "random-mcpを使う理由",
-		whyTitle: "言語モデルは予測します。くじを引くわけではありません。",
+		whyTitle: "言語モデルは\n予測します。\nくじを引く\nわけでは\nありません。",
 		whyBody:
 			"モデルに無作為な選択を求めても、出力傾向によって特定の値が選ばれやすくなることがあります。このサーバーは乱択をモデルの外部で実行し、エージェントから明示的に呼び出せるツールとして提供します。",
 		qualityTitle: "偏りのない整数範囲",
@@ -157,7 +157,7 @@ const content: Record<Locale, LandingPageContent> = {
 		authBody:
 			"ユーザーが許可すると、MCPクライアントへOAuth 2.1アクセストークンを発行します。その認可手続きでユーザーを確認するため、GitHub OAuthを使用します。",
 		connectLabel: "接続方法",
-		connectTitle: "MCPクライアントへ追加する",
+		connectTitle: "MCPクライアントへ\n追加する",
 		steps: [
 			{
 				title: "カスタムMCPサーバーを追加",
@@ -250,7 +250,7 @@ const styles = String.raw`
 		grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.8fr);
 		gap: clamp(48px, 8vw, 112px);
 		align-items: end;
-		padding-block: clamp(80px, 11vw, 156px) clamp(72px, 9vw, 120px);
+		padding-block: clamp(36px, 3.25vw, 52px) clamp(20px, 2vw, 32px);
 	}
 
 	.eyebrow, .section-label, .tool-category {
@@ -269,7 +269,12 @@ const styles = String.raw`
 		font-weight: 750;
 		letter-spacing: -0.065em;
 		line-height: 0.94;
+		overflow-wrap: anywhere;
+		text-wrap: balance;
+		word-break: auto-phrase;
 	}
+
+	.heading-phrase { white-space: nowrap; }
 
 	.lead {
 		max-width: 72ch;
@@ -299,6 +304,8 @@ const styles = String.raw`
 		font: 600 0.88rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 	}
 
+	.endpoint-path { white-space: nowrap; }
+
 	.endpoint-hint { margin: 14px 0 22px; color: var(--muted); font-size: 0.9rem; }
 
 	.text-link {
@@ -310,14 +317,14 @@ const styles = String.raw`
 		text-underline-offset: 5px;
 	}
 
-	.section { padding-block: clamp(72px, 9vw, 120px); border-top: 1px solid var(--line); }
+	.section { padding-block: clamp(28px, 2.5vw, 40px); border-top: 1px solid var(--line); }
 
 	.section-heading {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr) minmax(280px, 0.65fr);
 		gap: 48px;
 		align-items: end;
-		margin-bottom: 46px;
+		margin-bottom: 32px;
 	}
 
 	h2 {
@@ -326,7 +333,12 @@ const styles = String.raw`
 		font-size: clamp(2.25rem, 4.4vw, 4.7rem);
 		letter-spacing: -0.05em;
 		line-height: 1;
+		overflow-wrap: anywhere;
+		text-wrap: balance;
+		word-break: auto-phrase;
 	}
+
+	html[lang="ja"] h2 { font-size: clamp(2rem, 3.7vw, 4rem); }
 
 	.section-introduction { max-width: 58ch; margin: 0; color: var(--muted); font-size: 1.03rem; }
 
@@ -370,7 +382,7 @@ const styles = String.raw`
 		gap: 18px;
 	}
 
-	.reason-main, .reason-card { padding: clamp(28px, 4vw, 46px); border-radius: 16px; }
+	.reason-main, .reason-card { min-width: 0; padding: clamp(28px, 4vw, 46px); border-radius: 16px; }
 	.reason-main { background: var(--code); color: #edf8f1; }
 	.reason-card { border: 1px solid var(--line); background: var(--surface); }
 	.reason-main h2 { font-size: clamp(2.2rem, 3.8vw, 4rem); }
@@ -410,9 +422,10 @@ const styles = String.raw`
 		.shell { width: min(100% - 28px, 1280px); }
 		.site-header { min-height: 72px; }
 		.language-switch span { display: none; }
-		.hero { padding-block: 64px 74px; gap: 38px; }
-		h1 { font-size: clamp(2.8rem, 15vw, 4.5rem); }
-		.section { padding-block: 70px; }
+		.hero { padding-block: 32px 24px; gap: 28px; }
+		h1 { font-size: clamp(2.35rem, 13vw, 4.5rem); }
+		h2 { font-size: clamp(2rem, 11vw, 4.7rem); }
+		.section { padding-block: 28px; }
 		.section-heading { gap: 24px; }
 		.tool-grid, .reason-grid, .steps { grid-template-columns: 1fr; }
 		.reason-main { grid-column: auto; }
@@ -450,6 +463,15 @@ function escapeHtml(value: string): string {
 		.replaceAll(">", "&gt;")
 		.replaceAll('"', "&quot;")
 		.replaceAll("'", "&#39;");
+}
+
+function headingText(value: string): string {
+	if (!value.includes("\n")) return escapeHtml(value);
+
+	return value
+		.split("\n")
+		.map((phrase) => `<span class="heading-phrase">${escapeHtml(phrase)}</span>`)
+		.join("<wbr>");
 }
 
 function toolCard(tool: ToolContent): string {
@@ -507,7 +529,6 @@ export function renderLandingPage(request: Request, locale: Locale): string {
 	const copy = content[locale];
 	const origin = new URL(request.url).origin;
 	const escapedOrigin = escapeHtml(origin);
-	const endpoint = `${origin}/mcp`;
 	const otherLocale: Locale = locale === "ja" ? "en" : "ja";
 	const tools = copy.tools.map(toolCard).join("");
 	const steps = copy.steps.map(stepCard).join("");
@@ -544,12 +565,12 @@ export function renderLandingPage(request: Request, locale: Locale): string {
 		<section class="hero shell">
 			<div>
 				<p class="eyebrow">${escapeHtml(copy.eyebrow)}</p>
-				<h1>${escapeHtml(copy.title)}</h1>
+				<h1>${headingText(copy.title)}</h1>
 				<p class="lead">${escapeHtml(copy.lead)}</p>
 			</div>
 			<aside class="endpoint-card">
 				<span class="endpoint-label">${escapeHtml(copy.endpointLabel)}</span>
-				<code class="endpoint">${escapeHtml(endpoint)}</code>
+				<code class="endpoint">${escapedOrigin}/<span class="endpoint-path">mcp</span></code>
 				<p class="endpoint-hint">${escapeHtml(copy.endpointHint)}</p>
 				<a class="text-link" href="https://github.com/eldesh/random-mcp">${escapeHtml(copy.githubLabel)} <span aria-hidden="true">↗</span></a>
 			</aside>
@@ -559,7 +580,7 @@ export function renderLandingPage(request: Request, locale: Locale): string {
 			<div class="section-heading">
 				<div>
 					<p class="section-label">${escapeHtml(copy.toolsLabel)}</p>
-					<h2>${escapeHtml(copy.toolsTitle)}</h2>
+					<h2>${headingText(copy.toolsTitle)}</h2>
 				</div>
 				<p class="section-introduction">${escapeHtml(copy.toolsIntroduction)}</p>
 			</div>
@@ -571,7 +592,7 @@ export function renderLandingPage(request: Request, locale: Locale): string {
 			<div class="reason-grid">
 				<article class="reason-main">
 					<p class="section-label">${escapeHtml(copy.whyLabel)}</p>
-					<h2>${escapeHtml(copy.whyTitle)}</h2>
+					<h2>${headingText(copy.whyTitle)}</h2>
 					<p>${escapeHtml(copy.whyBody)}</p>
 				</article>
 				<article class="reason-card">
@@ -589,7 +610,7 @@ export function renderLandingPage(request: Request, locale: Locale): string {
 			<div class="section-heading">
 				<div>
 					<p class="section-label">${escapeHtml(copy.connectLabel)}</p>
-					<h2>${escapeHtml(copy.connectTitle)}</h2>
+					<h2>${headingText(copy.connectTitle)}</h2>
 				</div>
 			</div>
 			<div class="steps">${steps}

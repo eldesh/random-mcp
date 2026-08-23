@@ -24,11 +24,18 @@ test("renderLandingPage renders the current toolset and request origin", () => {
 	);
 
 	assert.match(html, /<html lang="ja">/);
-	assert.match(html, /https:\/\/example\.com\/mcp/);
+	assert.match(
+		html,
+		/https:\/\/example\.com\/<span class="endpoint-path">mcp<\/span>/,
+	);
 	assert.match(html, /random_int/);
 	assert.match(html, /random_double/);
 	assert.match(html, /random_choice/);
 	assert.doesNotMatch(html, /random_sample/);
+	assert.match(
+		html,
+		/<span class="heading-phrase">MCPクライアントへ<\/span><wbr><span class="heading-phrase">追加する<\/span>/,
+	);
 });
 
 test("landingPageResponse supplies HTML security headers", async () => {
@@ -40,5 +47,10 @@ test("landingPageResponse supplies HTML security headers", async () => {
 	assert.equal(response.status, 200);
 	assert.equal(response.headers.get("Content-Type"), "text/html; charset=utf-8");
 	assert.match(response.headers.get("Content-Security-Policy") ?? "", /default-src 'none'/);
-	assert.match(await response.text(), /Reliable randomness for AI agents/);
+	const html = await response.text();
+	assert.match(html, /Reliable randomness for AI agents/);
+	assert.doesNotMatch(
+		html,
+		/<span class="heading-phrase">Reliable randomness for AI agents\.<\/span>/,
+	);
 });

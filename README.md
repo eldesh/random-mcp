@@ -171,7 +171,7 @@ npm run dev
 http://localhost:8787/mcp
 ```
 
-ランディングページは `http://localhost:8787/` で確認できます。日本語ページは `/ja/`、英語ページは `/en/` です。
+ランディングページは `http://localhost:8787/` で確認できます。
 
 > [!NOTE]
 > Wrangler が `Request.cf` を取得できないという警告を表示しても、最後に `Ready on http://localhost:8787` と表示され、このプロジェクトが `Request.cf` を使用していなければ動作確認を続けられます。
