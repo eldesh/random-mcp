@@ -7,6 +7,7 @@ import { z } from "zod";
 import packageJson from "../package.json";
 import type { Env } from "./env";
 import { GitHubHandler } from "./github-handler";
+import { randomDoubleFromUnitInterval } from "./random-double";
 
 const TWO_POW_53 = 9_007_199_254_740_992;
 
@@ -56,16 +57,7 @@ function randomIntInclusive(min: number, max: number): number {
 }
 
 function randomDoubleValue(min: number, max: number): number {
-  if (!Number.isFinite(min) || !Number.isFinite(max) || min >= max) {
-    throw new Error("min and max must be finite and min < max");
-  }
-
-  const width = max - min;
-  if (!Number.isFinite(width)) {
-    throw new Error("range is too large");
-  }
-
-  return min + width * unitRandom();
+  return randomDoubleFromUnitInterval(min, max, unitRandom());
 }
 
 function normal(mean: number, standardDeviation: number): number {
