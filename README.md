@@ -251,7 +251,7 @@ https://random-mcp.<subdomain>.workers.dev/mcp
 
 公式サーバーは Cloudflare の Git 連携によってデプロイされます。`release` ブランチへの push を契機に自動デプロイされるため、公式環境のリリースに `npm run deploy` は使用しません。
 
-保守担当者向けの手順は [RELEASE](RELEASE) を参照してください。
+保守担当者向けの手順は [RELEASE.md](RELEASE.md) を参照してください。
 
 ## ライセンス
 

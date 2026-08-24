@@ -1,9 +1,0 @@
-# リリース手順
-
-- コード中のバージョンを更新する
-- master ブランチを git push する
-- release ブランチへ master ブランチを --no-ff マージする
-- git push release する
-    - cloudflare の deloy アクションが発火
-- 動作を確認する
-- master ブランチ上でバージョンを開発用のものに更新する
