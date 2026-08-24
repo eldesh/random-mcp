@@ -412,7 +412,7 @@ const mcpApiHandler = {
 export default new OAuthProvider<Env>({
   apiRoute: "/mcp",
   apiHandler: mcpApiHandler,
-  defaultHandler: GitHubHandler as any,
+  defaultHandler: GitHubHandler,
 
   authorizeEndpoint: "/authorize",
   tokenEndpoint: "/oauth/token",
