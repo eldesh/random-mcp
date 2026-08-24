@@ -120,7 +120,7 @@ export const landingPageContent: Record<Locale, LandingPageContent> = {
 		endpointHint: "このURLをOAuth対応のMCPクライアントへ登録してください。",
 		githubLabel: "GitHubでソースを見る",
 		toolsLabel: "ツール",
-		toolsTitle: "小さく、\n目的の明確な\nツールセット",
+		toolsTitle: "3つの乱択ツール",
 		toolsIntroduction:
 			"3つのツールで一般的な乱択処理を扱います。すべてのツールはcountフィールドによる複数結果の生成に対応しています。",
 		tools: [
@@ -147,7 +147,7 @@ export const landingPageContent: Record<Locale, LandingPageContent> = {
 			},
 		],
 		whyLabel: "random-mcpを使う理由",
-		whyTitle: "言語モデルは\n予測します。\nくじを引く\nわけでは\nありません。",
+		whyTitle: "予測ではなく、\n確かな乱択を。",
 		whyBody:
 			"モデルに無作為な選択を求めても、出力傾向によって特定の値が選ばれやすくなることがあります。このサーバーは乱択をモデルの外部で実行し、エージェントから明示的に呼び出せるツールとして提供します。",
 		qualityTitle: "偏りのない整数範囲",
@@ -157,7 +157,7 @@ export const landingPageContent: Record<Locale, LandingPageContent> = {
 		authBody:
 			"ユーザーが許可すると、MCPクライアントへOAuth 2.1アクセストークンを発行します。その認可手続きでユーザーを確認するため、GitHub OAuthを使用します。",
 		connectLabel: "接続方法",
-		connectTitle: "MCPクライアントへ\n追加する",
+		connectTitle: "MCPクライアントに追加",
 		steps: [
 			{
 				title: "カスタムMCPサーバーを追加",

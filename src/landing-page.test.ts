@@ -36,7 +36,12 @@ test("renderLandingPage renders the current toolset and request origin", () => {
 	assert.doesNotMatch(html, /\{\{[A-Z_]+\}\}/);
 	assert.match(
 		html,
-		/<span class="heading-phrase">MCPクライアントへ<\/span><wbr><span class="heading-phrase">追加する<\/span>/,
+		/<section class="section shell" id="tools">[\s\S]*?<h2>3つの乱択ツール<\/h2>/,
+	);
+	assert.match(html, /<h2>MCPクライアントに追加<\/h2>/);
+	assert.equal(
+		(html.match(/href="https:\/\/github\.com\/eldesh\/random-mcp[^\"]*" target="_blank" rel="noopener noreferrer"/g) ?? []).length,
+		3,
 	);
 });
 

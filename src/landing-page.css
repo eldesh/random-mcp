@@ -99,6 +99,13 @@ h1 {
 	word-break: auto-phrase;
 }
 
+html[lang="ja"] h1 {
+	font-size: clamp(2.5rem, 5.1vw, 5.5rem);
+	font-weight: 700;
+	letter-spacing: -0.035em;
+	line-height: 1.03;
+}
+
 .heading-phrase { white-space: nowrap; }
 
 .lead {
@@ -133,7 +140,7 @@ h1 {
 
 .endpoint-path { white-space: nowrap; }
 
-.endpoint-hint { margin: 14px 0 22px; color: var(--muted); font-size: 0.9rem; }
+.endpoint-hint { margin: 14px 0 14px; color: var(--muted); font-size: 0.9rem; }
 
 .text-link {
 	display: inline-flex;
@@ -165,7 +172,8 @@ h2 {
 	word-break: auto-phrase;
 }
 
-html[lang="ja"] h2 { font-size: clamp(2rem, 3.7vw, 4rem); }
+html[lang="ja"] h2 { font-size: clamp(1.75rem, 3vw, 3.25rem); }
+html[lang="ja"] #tools h2 { white-space: nowrap; }
 
 .section-introduction { max-width: 58ch; margin: 0; color: var(--muted); font-size: 1.03rem; }
 
