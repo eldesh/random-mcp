@@ -254,6 +254,15 @@ html[lang="ja"] #tools h2 { white-space: nowrap; }
 .footer-links { display: flex; gap: 22px; }
 .footer-links a { text-underline-offset: 4px; }
 
+@media (min-width: 1200px) {
+	.hero {
+		grid-template-columns: minmax(0, 1fr) 460px;
+		column-gap: clamp(64px, 6vw, 80px);
+	}
+
+	.endpoint { white-space: nowrap; }
+}
+
 @media (max-width: 960px) {
 	.hero, .section-heading { grid-template-columns: 1fr; }
 	.hero { row-gap: 48px; }
