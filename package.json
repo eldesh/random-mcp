@@ -1,6 +1,6 @@
 {
   "name": "random-mcp",
-  "version": "2.0.0",
+  "version": "2.0.1-dev",
   "description": "OAuth-protected MCP server for generating random values and probability distribution samples on Cloudflare Workers",
   "main": "index.js",
   "scripts": {
