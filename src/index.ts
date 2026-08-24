@@ -11,6 +11,7 @@ import {
   batchCountSchema,
   randomChoiceInputSchema,
 } from "./input-schemas";
+import { sumWeights } from "./random-choice";
 import {
   lognormalFromNormalValue,
   randomDoubleFromUnitInterval,
@@ -161,13 +162,15 @@ const randomDoubleInputSchema = z.union([
 
 type RandomDoubleInput = z.infer<typeof randomDoubleInputSchema>;
 
-function weightedChoiceIndex(length: number, weights?: number[]): number {
-  if (weights === undefined) {
+function weightedChoiceIndex(
+  length: number,
+  weighted?: { weights: number[]; total: number },
+): number {
+  if (weighted === undefined) {
     return randomIntInclusive(0, length - 1);
   }
 
-  const total = weights.reduce((sum, weight) => sum + weight, 0);
-
+  const { weights, total } = weighted;
   let target = unitRandom() * total;
   let lastPositiveIndex = 0;
 
@@ -189,9 +192,13 @@ function randomChoices(
   weights?: number[],
 ): string[] {
   if (withReplacement) {
+    const weighted = weights === undefined
+      ? undefined
+      : { weights, total: sumWeights(weights) };
+
     return Array.from(
       { length: count },
-      () => choices[weightedChoiceIndex(choices.length, weights)],
+      () => choices[weightedChoiceIndex(choices.length, weighted)],
     );
   }
 
@@ -200,9 +207,15 @@ function randomChoices(
   const values: string[] = [];
 
   for (let i = 0; i < count; i++) {
+    const weighted = remainingWeights === undefined
+      ? undefined
+      : {
+        weights: remainingWeights,
+        total: sumWeights(remainingWeights),
+      };
     const index = weightedChoiceIndex(
       remainingChoices.length,
-      remainingWeights,
+      weighted,
     );
     values.push(remainingChoices[index]);
     remainingChoices.splice(index, 1);

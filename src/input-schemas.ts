@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { sumWeights } from "./random-choice.ts";
 
 export const batchCountSchema = z.number().int().min(1).max(1000);
 
@@ -17,7 +18,7 @@ export const randomChoiceInputSchema = z.object({
       });
     }
 
-    const total = weights.reduce((sum, weight) => sum + weight, 0);
+    const total = sumWeights(weights);
     if (!Number.isFinite(total) || total <= 0) {
       ctx.addIssue({
         code: "custom",
