@@ -8,6 +8,10 @@ import packageJson from "../package.json";
 import type { Env } from "./env";
 import { GitHubHandler } from "./github-handler";
 import {
+  batchCountSchema,
+  randomChoiceInputSchema,
+} from "./input-schemas";
+import {
   lognormalFromNormalValue,
   randomDoubleFromUnitInterval,
 } from "./random-double";
@@ -86,8 +90,6 @@ function normal(mean: number, standardDeviation: number): number {
   );
 }
 
-const batchCountSchema = z.number().int().min(1).max(1000);
-
 const integerValuesOutputSchema = z.object({
   values: z.array(z.number().int()),
 });
@@ -159,27 +161,6 @@ const randomDoubleInputSchema = z.union([
 
 type RandomDoubleInput = z.infer<typeof randomDoubleInputSchema>;
 
-function validateWeights(choices: string[], weights?: number[]): void {
-  if (weights === undefined) return;
-
-  if (weights.length !== choices.length) {
-    throw new Error("weights must have the same length as choices");
-  }
-
-  let total = 0;
-
-  for (const weight of weights) {
-    if (!Number.isFinite(weight) || weight < 0) {
-      throw new Error("weights must be finite and nonnegative");
-    }
-    total += weight;
-  }
-
-  if (!Number.isFinite(total) || total <= 0) {
-    throw new Error("the sum of weights must be positive and finite");
-  }
-}
-
 function weightedChoiceIndex(length: number, weights?: number[]): number {
   if (weights === undefined) {
     return randomIntInclusive(0, length - 1);
@@ -207,27 +188,10 @@ function randomChoices(
   withReplacement: boolean,
   weights?: number[],
 ): string[] {
-  validateWeights(choices, weights);
-
   if (withReplacement) {
     return Array.from(
       { length: count },
       () => choices[weightedChoiceIndex(choices.length, weights)],
-    );
-  }
-
-  if (count > choices.length) {
-    throw new Error(
-      "count must not exceed the number of choices when sampling without replacement",
-    );
-  }
-
-  if (
-    weights !== undefined &&
-    count > weights.filter((weight) => weight > 0).length
-  ) {
-    throw new Error(
-      "count must not exceed the number of positive weights when sampling without replacement",
     );
   }
 
@@ -401,12 +365,7 @@ function createServer() {
     {
       description:
         "Select strings from choices. Optional weights select proportionally to nonnegative weights. Set with_replacement to false to prevent the same choice position from being selected more than once.",
-      inputSchema: z.object({
-        choices: z.array(z.string()).min(1).max(1000),
-        weights: z.array(z.number().finite()).max(1000).optional(),
-        count: batchCountSchema.default(1),
-        with_replacement: z.boolean().default(true),
-      }),
+      inputSchema: randomChoiceInputSchema,
       outputSchema: stringValuesOutputSchema,
     },
     async ({ choices, weights, count, with_replacement }) =>
