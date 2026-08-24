@@ -38,3 +38,10 @@ export function randomDoubleFromUnitInterval(
   // IEEE 754の丸めで上限値になった場合も半開区間を維持する
   return value < max ? value : nextDown(max);
 }
+
+export function lognormalFromNormalValue(normalValue: number): number {
+  const value = Math.exp(normalValue);
+
+  // JSONで表現できないInfinityの代わりに最大の有限値へ飽和させる
+  return value === Number.POSITIVE_INFINITY ? Number.MAX_VALUE : value;
+}

@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { randomDoubleFromUnitInterval } from "./random-double.ts";
+import {
+  lognormalFromNormalValue,
+  randomDoubleFromUnitInterval,
+} from "./random-double.ts";
 
 const MAX_UNIT_RANDOM = (2 ** 53 - 1) / 2 ** 53;
 
@@ -23,4 +26,12 @@ test("randomDoubleFromUnitInterval handles a zero upper bound", () => {
 
   assert.ok(result >= -1);
   assert.ok(result < 0);
+});
+
+test("lognormalFromNormalValue saturates overflow", () => {
+  assert.equal(lognormalFromNormalValue(710), Number.MAX_VALUE);
+});
+
+test("lognormalFromNormalValue preserves representable results", () => {
+  assert.equal(lognormalFromNormalValue(1), Math.E);
 });

@@ -7,7 +7,10 @@ import { z } from "zod";
 import packageJson from "../package.json";
 import type { Env } from "./env";
 import { GitHubHandler } from "./github-handler";
-import { randomDoubleFromUnitInterval } from "./random-double";
+import {
+  lognormalFromNormalValue,
+  randomDoubleFromUnitInterval,
+} from "./random-double";
 
 const TWO_POW_53 = 9_007_199_254_740_992;
 
@@ -297,13 +300,7 @@ function randomDoubleFromDistribution(input: RandomDoubleInput): number {
 
     case "lognormal": {
       // muとsigmaはlog(X)が従う正規分布の母数
-      const value = Math.exp(normal(input.mu, input.sigma));
-
-      if (!Number.isFinite(value)) {
-        throw new Error("lognormal result overflowed");
-      }
-
-      return value;
+      return lognormalFromNormalValue(normal(input.mu, input.sigma));
     }
 
     case "exponential":
@@ -383,7 +380,7 @@ function createServer() {
         "distribution defaults to uniform when omitted.",
         "uniform: {min,max}, using the half-open interval [min,max).",
         "normal: {mean,standard_deviation}.",
-        "lognormal: {mu,sigma}, where log(X) is normal(mu,sigma).",
+        "lognormal: {mu,sigma}, where log(X) is normal(mu,sigma); overflow is clamped to the largest finite double.",
         "exponential: {rate}.",
         "count is the number of values to generate and defaults to 1.",
       ].join(" "),
