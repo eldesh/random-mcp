@@ -2,6 +2,6 @@
 	"extends": "agents/tsconfig",
 	"compilerOptions": {
 		"resolveJsonModule": true,
-		"types": ["node", "@cloudflare/workers-types"]
+		"types": ["./worker-configuration.d.ts", "node"]
 	}
 }

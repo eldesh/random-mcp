@@ -152,6 +152,14 @@ COOKIE_ENCRYPTION_KEY=<Cookie の暗号化に使用するランダムな値>
 openssl rand -hex 32
 ```
 
+`wrangler.jsonc` のバインディング、互換日付、互換フラグ、または `.dev.vars` の変数名を変更した場合は、Workers ランタイムと環境変数の型定義を更新します。
+
+```sh
+npm run types
+```
+
+生成される `worker-configuration.d.ts` はリポジトリへコミットします。型定義が設定と一致していることは `npm run typecheck` で確認できます。
+
 ### 起動
 
 ローカルサーバーを起動します。
