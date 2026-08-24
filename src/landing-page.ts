@@ -91,11 +91,11 @@ export function renderLandingPage(request: Request, locale: Locale): string {
 	const otherLocale: Locale = locale === "ja" ? "en" : "ja";
 
 	return fillTemplate({
-		AUTH_BODY: escapeHtml(copy.authBody),
-		AUTH_TITLE: escapeHtml(copy.authTitle),
 		CONNECT_LABEL: escapeHtml(copy.connectLabel),
 		CONNECT_TITLE: headingText(copy.connectTitle),
 		DESCRIPTION: escapeHtml(copy.description),
+		DISTRIBUTION_BODY: escapeHtml(copy.distributionBody),
+		DISTRIBUTION_TITLE: escapeHtml(copy.distributionTitle),
 		DOCUMENT_TITLE: escapeHtml(copy.documentTitle),
 		ENDPOINT_HINT: escapeHtml(copy.endpointHint),
 		ENDPOINT_LABEL: escapeHtml(copy.endpointLabel),

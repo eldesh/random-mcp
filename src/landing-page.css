@@ -126,7 +126,16 @@ html[lang="ja"] h1 {
 	backdrop-filter: blur(12px);
 }
 
-.endpoint-label { display: block; margin-bottom: 10px; color: var(--muted); font-size: 0.8rem; font-weight: 700; }
+.endpoint-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.endpoint-label { color: var(--muted); font-size: 0.8rem; font-weight: 700; }
+
+.endpoint-badge {
+	padding: 3px 8px;
+	border-radius: 999px;
+	background: var(--accent-soft);
+	color: #174d35;
+	font: 700 0.68rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
 
 .endpoint {
 	display: block;
@@ -289,5 +298,5 @@ html[lang="ja"] #tools h2 { white-space: nowrap; }
 		--shadow: none;
 	}
 	body { background: radial-gradient(circle at 10% 0%, rgba(35, 132, 86, 0.2), transparent 28rem), var(--background); }
-	.tag { color: #bce9ce; }
+	.tag, .endpoint-badge { color: #bce9ce; }
 }

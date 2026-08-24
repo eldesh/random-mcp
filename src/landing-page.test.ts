@@ -39,6 +39,10 @@ test("renderLandingPage renders the current toolset and request origin", () => {
 		/<section class="section shell" id="tools">[\s\S]*?<h2>3つの乱択ツール<\/h2>/,
 	);
 	assert.match(html, /<h2>MCPクライアントに追加<\/h2>/);
+	assert.match(html, /<span class="endpoint-badge">OAuth 2\.1<\/span>/);
+	assert.match(html, /<h3>偏りのない整数生成<\/h3>/);
+	assert.match(html, /<h3>用途に合わせた確率分布<\/h3>/);
+	assert.doesNotMatch(html, /OAuthで保護されたアクセス/);
 	assert.equal(
 		(html.match(/href="https:\/\/github\.com\/eldesh\/random-mcp[^\"]*" target="_blank" rel="noopener noreferrer"/g) ?? []).length,
 		3,

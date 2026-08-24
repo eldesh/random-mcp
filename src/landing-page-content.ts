@@ -27,8 +27,8 @@ export type LandingPageContent = {
 	whyBody: string;
 	qualityTitle: string;
 	qualityBody: string;
-	authTitle: string;
-	authBody: string;
+	distributionTitle: string;
+	distributionBody: string;
 	connectLabel: string;
 	connectTitle: string;
 	steps: Array<{ title: string; body: string }>;
@@ -48,7 +48,8 @@ export const landingPageContent: Record<Locale, LandingPageContent> = {
 		lead:
 			"Move random decisions out of the language model. random-mcp generates integer and real-valued distributions, weighted choices, and repeated samples using the Web Crypto API.",
 		endpointLabel: "MCP endpoint",
-		endpointHint: "Use this URL in any OAuth-capable MCP client.",
+		endpointHint:
+			"Use this URL in any OAuth-capable MCP client. GitHub OAuth identifies the user during authorization.",
 		githubLabel: "View source on GitHub",
 		toolsLabel: "Tools",
 		toolsTitle: "A small, focused toolset",
@@ -81,12 +82,12 @@ export const landingPageContent: Record<Locale, LandingPageContent> = {
 		whyTitle: "Language models predict. They do not draw lots.",
 		whyBody:
 			"A model may favor familiar-looking values when asked to choose randomly. This server performs the random operation outside the model so agents can rely on an explicit, auditable tool call.",
-		qualityTitle: "Unbiased integer ranges",
+		qualityTitle: "Unbiased integer generation",
 		qualityBody:
 			"Integer generation uses rejection sampling to prevent modulo bias, so no value becomes more likely merely because the source range does not divide evenly.",
-		authTitle: "OAuth-protected access",
-		authBody:
-			"MCP clients receive an OAuth 2.1 access token after user consent. GitHub OAuth is used to identify the user during that authorization flow.",
+		distributionTitle: "Distributions for each task",
+		distributionBody:
+			"Choose uniform, Bernoulli, binomial, or Poisson distributions for integers, and uniform, normal, lognormal, or exponential distributions for real values.",
 		connectLabel: "Connect",
 		connectTitle: "Add it to an MCP client",
 		steps: [
@@ -117,7 +118,8 @@ export const landingPageContent: Record<Locale, LandingPageContent> = {
 		lead:
 			"乱択を言語モデルの予測に委ねません。random-mcpはWeb Crypto APIを使用し、整数・実数の確率分布、重み付き選択、複数標本の生成をMCPツールとして提供します。",
 		endpointLabel: "MCPエンドポイント",
-		endpointHint: "このURLをOAuth対応のMCPクライアントへ登録してください。",
+		endpointHint:
+			"このURLをOAuth対応のMCPクライアントへ登録してください。認可フローでのユーザー確認にはGitHub OAuthを使用します。",
 		githubLabel: "GitHubでソースを見る",
 		toolsLabel: "ツール",
 		toolsTitle: "3つの乱択ツール",
@@ -150,12 +152,12 @@ export const landingPageContent: Record<Locale, LandingPageContent> = {
 		whyTitle: "予測ではなく、\n確かな乱択を。",
 		whyBody:
 			"モデルに無作為な選択を求めても、出力傾向によって特定の値が選ばれやすくなることがあります。このサーバーは乱択をモデルの外部で実行し、エージェントから明示的に呼び出せるツールとして提供します。",
-		qualityTitle: "偏りのない整数範囲",
+		qualityTitle: "偏りのない整数生成",
 		qualityBody:
 			"整数生成では棄却法を使用して剰余バイアスを防ぎます。乱数源の範囲が指定範囲で割り切れない場合でも、一部の値だけが出やすくなることを避けます。",
-		authTitle: "OAuthで保護されたアクセス",
-		authBody:
-			"ユーザーが許可すると、MCPクライアントへOAuth 2.1アクセストークンを発行します。その認可手続きでユーザーを確認するため、GitHub OAuthを使用します。",
+		distributionTitle: "用途に合わせた確率分布",
+		distributionBody:
+			"整数では一様・ベルヌーイ・二項・ポアソン分布、実数では一様・正規・対数正規・指数分布を指定できます。",
 		connectLabel: "接続方法",
 		connectTitle: "MCPクライアントに追加",
 		steps: [
