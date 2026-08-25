@@ -14,20 +14,21 @@
 
 1. `master` ブランチへ移動し、リモートの最新状態を取得します。
 1. 作業ツリーに意図しない変更が残っていないことを確認します。
-1. `package.json` の開発版バージョンを、今回リリースする安定版のバージョンへ更新します。`-dev` は取り除き、リリース内容に応じてパッチ、マイナー、またはメジャーバージョンを決定します。この値は MCP サーバーが公開するバージョンとしても使用されます。
+1. 開発版バージョンを、今回リリースする安定版のバージョンへ更新します。`-dev` は取り除き、リリース内容に応じてパッチ、マイナー、またはメジャーバージョンを決定します。この値は MCP サーバーが公開するバージョンとしても使用されます。
 1. 必要なテストを実行します。
 
 ```sh
 git switch master
 git pull
 git status
+npm version "<version>" --no-git-tag-version
 npm test
 ```
 
 バージョンの変更をコミットし、`master` ブランチを push します。
 
 ```sh
-git add package.json
+git add package.json package-lock.json
 git commit -m "Release <version>"
 git push origin master
 ```
@@ -71,7 +72,7 @@ git push origin release
 git switch master
 ```
 
-`package.json` の `version` を、今回リリースした安定版のパッチ番号を1増やして `-dev` を付けたバージョンへ更新します。
+今回リリースした安定版のパッチ番号を1増やして `-dev` を付けたバージョンへ更新します。
 
 たとえば、今回のリリースが `2.1.0` なら、次の開発版は `2.1.1-dev` です。
 
@@ -79,16 +80,16 @@ git switch master
 2.1.0 -> 2.1.1-dev
 ```
 
-`package-lock.json` のバージョンも追従します。
-
 ```sh
-npm install --package-lock-only
+npm version "<next-version>-dev" --no-git-tag-version
 ```
+
+`<next-version>` は、今回リリースした安定版のパッチ番号を1増やしたバージョンへ置き換えます。`package.json` と `package-lock.json` は同時に更新されます。
 
 バージョンの変更をコミットし、`master` ブランチを push します。
 
 ```sh
-git add package.json
+git add package.json package-lock.json
 git commit -m "Start next development version"
 git push origin master
 ```
