@@ -1,0 +1,16 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.eldesh/random-mcp",
+  "description": "Generate random values and probability distribution samples.",
+  "repository": {
+    "url": "https://github.com/eldesh/random-mcp",
+    "source": "github"
+  },
+  "version": "2.1.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://random-mcp.eldesh-tools.workers.dev/mcp"
+    }
+  ]
+}
