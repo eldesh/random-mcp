@@ -7,6 +7,15 @@ import { z } from "zod";
 import packageJson from "../package.json";
 import type { Env } from "./env";
 import { GitHubHandler } from "./github-handler";
+import {
+  batchCountSchema,
+  randomChoiceInputSchema,
+} from "./input-schemas";
+import { sumWeights } from "./random-choice";
+import {
+  lognormalFromNormalValue,
+  randomDoubleFromUnitInterval,
+} from "./random-double";
 
 const TWO_POW_53 = 9_007_199_254_740_992;
 
@@ -56,16 +65,7 @@ function randomIntInclusive(min: number, max: number): number {
 }
 
 function randomDoubleValue(min: number, max: number): number {
-  if (!Number.isFinite(min) || !Number.isFinite(max) || min >= max) {
-    throw new Error("min and max must be finite and min < max");
-  }
-
-  const width = max - min;
-  if (!Number.isFinite(width)) {
-    throw new Error("range is too large");
-  }
-
-  return min + width * unitRandom();
+  return randomDoubleFromUnitInterval(min, max, unitRandom());
 }
 
 function normal(mean: number, standardDeviation: number): number {
@@ -90,8 +90,6 @@ function normal(mean: number, standardDeviation: number): number {
       Math.cos(2 * Math.PI * v)
   );
 }
-
-const batchCountSchema = z.number().int().min(1).max(1000);
 
 const integerValuesOutputSchema = z.object({
   values: z.array(z.number().int()),
@@ -164,34 +162,15 @@ const randomDoubleInputSchema = z.union([
 
 type RandomDoubleInput = z.infer<typeof randomDoubleInputSchema>;
 
-function validateWeights(choices: string[], weights?: number[]): void {
-  if (weights === undefined) return;
-
-  if (weights.length !== choices.length) {
-    throw new Error("weights must have the same length as choices");
-  }
-
-  let total = 0;
-
-  for (const weight of weights) {
-    if (!Number.isFinite(weight) || weight < 0) {
-      throw new Error("weights must be finite and nonnegative");
-    }
-    total += weight;
-  }
-
-  if (!Number.isFinite(total) || total <= 0) {
-    throw new Error("the sum of weights must be positive and finite");
-  }
-}
-
-function weightedChoiceIndex(length: number, weights?: number[]): number {
-  if (weights === undefined) {
+function weightedChoiceIndex(
+  length: number,
+  weighted?: { weights: number[]; total: number },
+): number {
+  if (weighted === undefined) {
     return randomIntInclusive(0, length - 1);
   }
 
-  const total = weights.reduce((sum, weight) => sum + weight, 0);
-
+  const { weights, total } = weighted;
   let target = unitRandom() * total;
   let lastPositiveIndex = 0;
 
@@ -212,27 +191,14 @@ function randomChoices(
   withReplacement: boolean,
   weights?: number[],
 ): string[] {
-  validateWeights(choices, weights);
-
   if (withReplacement) {
+    const weighted = weights === undefined
+      ? undefined
+      : { weights, total: sumWeights(weights) };
+
     return Array.from(
       { length: count },
-      () => choices[weightedChoiceIndex(choices.length, weights)],
-    );
-  }
-
-  if (count > choices.length) {
-    throw new Error(
-      "count must not exceed the number of choices when sampling without replacement",
-    );
-  }
-
-  if (
-    weights !== undefined &&
-    count > weights.filter((weight) => weight > 0).length
-  ) {
-    throw new Error(
-      "count must not exceed the number of positive weights when sampling without replacement",
+      () => choices[weightedChoiceIndex(choices.length, weighted)],
     );
   }
 
@@ -241,9 +207,15 @@ function randomChoices(
   const values: string[] = [];
 
   for (let i = 0; i < count; i++) {
+    const weighted = remainingWeights === undefined
+      ? undefined
+      : {
+        weights: remainingWeights,
+        total: sumWeights(remainingWeights),
+      };
     const index = weightedChoiceIndex(
       remainingChoices.length,
-      remainingWeights,
+      weighted,
     );
     values.push(remainingChoices[index]);
     remainingChoices.splice(index, 1);
@@ -305,13 +277,7 @@ function randomDoubleFromDistribution(input: RandomDoubleInput): number {
 
     case "lognormal": {
       // muとsigmaはlog(X)が従う正規分布の母数
-      const value = Math.exp(normal(input.mu, input.sigma));
-
-      if (!Number.isFinite(value)) {
-        throw new Error("lognormal result overflowed");
-      }
-
-      return value;
+      return lognormalFromNormalValue(normal(input.mu, input.sigma));
     }
 
     case "exponential":
@@ -391,7 +357,7 @@ function createServer() {
         "distribution defaults to uniform when omitted.",
         "uniform: {min,max}, using the half-open interval [min,max).",
         "normal: {mean,standard_deviation}.",
-        "lognormal: {mu,sigma}, where log(X) is normal(mu,sigma).",
+        "lognormal: {mu,sigma}, where log(X) is normal(mu,sigma); overflow is clamped to the largest finite double.",
         "exponential: {rate}.",
         "count is the number of values to generate and defaults to 1.",
       ].join(" "),
@@ -412,12 +378,7 @@ function createServer() {
     {
       description:
         "Select strings from choices. Optional weights select proportionally to nonnegative weights. Set with_replacement to false to prevent the same choice position from being selected more than once.",
-      inputSchema: z.object({
-        choices: z.array(z.string()).min(1).max(1000),
-        weights: z.array(z.number().finite()).max(1000).optional(),
-        count: batchCountSchema.default(1),
-        with_replacement: z.boolean().default(true),
-      }),
+      inputSchema: randomChoiceInputSchema,
       outputSchema: stringValuesOutputSchema,
     },
     async ({ choices, weights, count, with_replacement }) =>
@@ -451,7 +412,7 @@ const mcpApiHandler = {
 export default new OAuthProvider<Env>({
   apiRoute: "/mcp",
   apiHandler: mcpApiHandler,
-  defaultHandler: GitHubHandler as any,
+  defaultHandler: GitHubHandler,
 
   authorizeEndpoint: "/authorize",
   tokenEndpoint: "/oauth/token",

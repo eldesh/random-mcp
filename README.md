@@ -6,6 +6,8 @@
 
 Cloudflare Workers 上で動作する、乱数生成用の MCP（Model Context Protocol）サーバーです。Notion Agent などの MCP クライアントから、整数・浮動小数点数・重み付き選択・各種確率分布の標本を生成できます。
 
+公式サイト: [https://random-mcp.eldesh-tools.workers.dev/](https://random-mcp.eldesh-tools.workers.dev/)
+
 ## 目的
 
 言語モデル自身に乱数を選ばせず、外部の乱数生成処理を MCP ツールとして呼び出せるようにすることを目的としています。
@@ -15,12 +17,18 @@ Cloudflare Workers 上で動作する、乱数生成用の MCP（Model Context P
 乱数源には Web Crypto API を使用します。整数生成では、剰余による偏りを避けるため rejection sampling を行います。ただし、暗号鍵や認証トークンの生成を目的とした API ではありません。
 
 
-## 使い方
+## 公式サーバーを利用する
+
+公式サーバーは次の MCP エンドポイントで利用できます。利用者が Cloudflare や GitHub OAuth App を設定する必要はありません。
+
+```text
+https://random-mcp.eldesh-tools.workers.dev/mcp
+```
 
 ### Notion AI への接続
 
 1. Settings > Connections > MCP > Custom MCP を選択します
-1. MCP server URL にデプロイした URL を指定します（既存サービス: `https://random-mcp.eldesh-tools.workers.dev/mcp`）
+1. MCP server URL に `https://random-mcp.eldesh-tools.workers.dev/mcp` を指定します。独自インスタンスを利用する場合は、そのデプロイ先 URL を指定します
 1. 次のように各項目を埋めて `Connect` します
     - Name: Notion 内で識別するための名前（例: `random-mcp`）
     - Authentication: OAuth
@@ -103,12 +111,13 @@ random-mcp には以下に示す3つのツールがあり、それぞれ記載�
 引数の例: `{"choices":["A","B","C"],"weights":[1,2,1],"count":2,"with_replacement":false}`
 
 
-## 開発環境
+## ローカル開発
+
+### 必要な環境
 
 - Node.js 22.19.0以上
 - npm
 - GitHub アカウント
-- Cloudflare アカウント（デプロイする場合）
 
 依存関係をインストールします。
 
@@ -116,18 +125,14 @@ random-mcp には以下に示す3つのツールがあり、それぞれ記載�
 npm install
 ```
 
-## ローカル開発
+### ローカル用 GitHub OAuth App の作成
 
-### GitHub OAuth App の作成
+[GitHub の Developer settings](https://github.com/settings/developers) で、ローカル開発用の OAuth App を作成します。
 
-[GitHub の Developer settings](https://github.com/settings/developers) で OAuth App を作成します。ローカル環境と本番環境ではコールバック URL が異なるため、それぞれ別の OAuth App を作成します。
-
-ローカル開発用 OAuth App には次の値を設定します。
+次の値を設定します。
 
 - Homepage URL: `http://localhost:8787`
 - Authorization callback URL: `http://localhost:8787/callback`
-
-本番用 OAuth App では、`http://localhost:8787` の部分をデプロイ先 Worker のオリジンに置き換えます。既存サービスのコールバック URL は `https://random-mcp.eldesh-tools.workers.dev/callback` です。
 
 作成後、Client ID と Client secret を取得します。このアプリケーションが GitHub に要求する OAuth スコープは `read:user` です。
 
@@ -147,7 +152,13 @@ COOKIE_ENCRYPTION_KEY=<Cookie の暗号化に使用するランダムな値>
 openssl rand -hex 32
 ```
 
-OAuth の一時的な state は、`wrangler.jsonc` の `OAUTH_KV` バインディングで指定した Cloudflare KV に保存されます。新規に Cloudflare アカウントへデプロイする場合は KV namespace を作成し、`wrangler.jsonc` の `id` をその namespace ID に置き換えてください。
+`wrangler.jsonc` のバインディング、互換日付、互換フラグ、または `.dev.vars` の変数名を変更した場合は、Workers ランタイムと環境変数の型定義を更新します。
+
+```sh
+npm run types
+```
+
+生成される `worker-configuration.d.ts` はリポジトリへコミットします。型定義が設定と一致していることは `npm run typecheck` で確認できます。
 
 ### 起動
 
@@ -162,6 +173,8 @@ npm run dev
 ```text
 http://localhost:8787/mcp
 ```
+
+ランディングページは `http://localhost:8787/` で確認できます。
 
 > [!NOTE]
 > Wrangler が `Request.cf` を取得できないという警告を表示しても、最後に `Ready on http://localhost:8787` と表示され、このプロジェクトが `Request.cf` を使用していなければ動作確認を続けられます。
@@ -182,7 +195,31 @@ Inspector で Streamable HTTP を選択し、接続先に `http://localhost:8787
 > 2026/08/20現在の MCP Inspector では random_int, random_double による入力型に対応したWebUIフォームは導出されません。
 > これらのツールの動作確認をする場合は MCP Inspector の CLI などを利用してください。
 
-## Cloudflare Workers へのデプロイ
+## 独自インスタンスの構築
+
+この章は、random-mcp の独自インスタンスを新たに Cloudflare Workers へ構築する場合の手順です。公式サーバーのデプロイには使用していません。
+
+構築には Cloudflare アカウントと、本番環境用の GitHub OAuth App が必要です。ローカル環境と本番環境ではコールバック URL が異なるため、OAuth App は環境ごとに作成してください。
+
+### 本番用 GitHub OAuth App の作成
+
+[GitHub の Developer settings](https://github.com/settings/developers) で OAuth App を作成し、次の値を設定します。
+
+- Homepage URL: デプロイ先 Worker のオリジン
+- Authorization callback URL: デプロイ先 Worker のオリジンに `/callback` を加えた URL
+
+たとえば、Worker のオリジンが `https://random-mcp.example.workers.dev` の場合、Authorization callback URL は `https://random-mcp.example.workers.dev/callback` です。
+
+作成後、Client ID と Client secret を取得します。このアプリケーションが GitHub に要求する OAuth スコープは `read:user` です。
+
+### Cloudflare リソースと Worker の設定
+
+OAuth の一時的な state を保存する Cloudflare KV namespace を作成します。次に、`wrangler.jsonc` で次の項目を独自インスタンス用に変更します。
+
+- `name`: Worker の名前
+- `kv_namespaces` の `OAUTH_KV` バインディングにある `id`: 作成した KV namespace の ID
+
+### Secret の登録
 
 Cloudflare へログインします。
 
@@ -198,6 +235,10 @@ npx wrangler secret put GITHUB_CLIENT_SECRET
 npx wrangler secret put COOKIE_ENCRYPTION_KEY
 ```
 
+`COOKIE_ENCRYPTION_KEY` には、ローカル開発と同様にランダムな値を使用します。`.dev.vars` は Cloudflare へ自動的には反映されないため、本番 Worker で使用する値は Cloudflare Secret として登録する必要があります。
+
+### デプロイ
+
 GitHub OAuth App の Authorization callback URL がデプロイ先 Worker の `/callback` を指していることと、`wrangler.jsonc` の `OAUTH_KV` が利用可能な KV namespace を指していることを確認します。
 
 デプロイします。
@@ -212,8 +253,13 @@ npm run deploy
 https://random-mcp.<subdomain>.workers.dev/mcp
 ```
 
-> [!IMPORTANT]
-> `.dev.vars` は Cloudflare へ自動的には反映されません。本番 Worker は Cloudflare Secret に登録した値を参照します。
+デプロイ後、公開された URL へ MCP クライアントまたは MCP Inspector から接続し、GitHub OAuth の認可とツールの呼び出しを確認します。
+
+## 公式サーバーのリリース
+
+公式サーバーは Cloudflare の Git 連携によってデプロイされます。`release` ブランチへの push を契機に自動デプロイされるため、公式環境のリリースに `npm run deploy` は使用しません。
+
+保守担当者向けの手順は [RELEASE.md](RELEASE.md) を参照してください。
 
 ## ライセンス
 

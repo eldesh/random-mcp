@@ -1,6 +1,7 @@
 {
 	"extends": "agents/tsconfig",
 	"compilerOptions": {
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
+		"types": ["./worker-configuration.d.ts", "node"]
 	}
 }
