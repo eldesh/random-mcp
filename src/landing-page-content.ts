@@ -149,7 +149,7 @@ export const landingPageContent: Record<Locale, LandingPageContent> = {
 			},
 		],
 		whyLabel: "random-mcpを使う理由",
-		whyTitle: "予測ではなく、\n確かな乱択を。",
+		whyTitle: "言語モデルは予測する。\nくじは引かない。",
 		whyBody:
 			"モデルに無作為な選択を求めても、出力傾向によって特定の値が選ばれやすくなることがあります。このサーバーは乱択をモデルの外部で実行し、エージェントから明示的に呼び出せるツールとして提供します。",
 		qualityTitle: "偏りのない整数生成",
