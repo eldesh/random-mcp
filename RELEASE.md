@@ -72,17 +72,11 @@ git switch master
 
 今回リリースした安定版のパッチ番号を1増やして `-dev` を付けたバージョンへ更新します。
 
-たとえば、今回のリリースが `2.1.0` なら、次の開発版は `2.1.1-dev` です。
-
-```text
-2.1.0 -> 2.1.1-dev
-```
+たとえば、今回のリリースが `2.1.0` なら、 `<next-version>` は `2.1.1-dev` です。
 
 ```sh
-npm version "<next-version>-dev" --no-git-tag-version
+npm version "<next-version>" --no-git-tag-version
 ```
-
-`<next-version>` は、今回リリースした安定版のパッチ番号を1増やしたバージョンへ置き換えます。`package.json` と `package-lock.json` は同時に更新されます。
 
 バージョンの変更をコミットし、`master` ブランチを push します。
 
