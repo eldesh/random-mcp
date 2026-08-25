@@ -13,14 +13,12 @@
 ## 1. リリースの準備
 
 1. `master` ブランチへ移動し、リモートの最新状態を取得します。
-1. 作業ツリーに意図しない変更が残っていないことを確認します。
 1. 開発版バージョンを、今回リリースする安定版のバージョンへ更新します。`-dev` は取り除き、リリース内容に応じてパッチ、マイナー、またはメジャーバージョンを決定します。この値は MCP サーバーが公開するバージョンとしても使用されます。
 1. 必要なテストを実行します。
 
 ```sh
 git switch master
-git pull
-git status
+git pull origin master
 npm version "<version>" --no-git-tag-version
 npm test
 ```
@@ -41,7 +39,7 @@ git push origin master
 
 ```sh
 git switch release
-git pull
+git pull --ff-only origin release
 git merge --no-ff master
 ```
 
