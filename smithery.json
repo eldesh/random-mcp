@@ -1,0 +1,10 @@
+{
+    "displayName": "Random MCP",
+    "description": "OAuth-protected MCP server for generating random values and probability distribution samples on Cloudflare Workers",
+    "homepage": "https://random-mcp.eldesh-tools.workers.dev/",
+    "repositoryUrl": "https://github.com/eldesh/random-mcp/",
+    "backlinkUrl": null,
+    "license": "MIT",
+    "iconUrl": "https://raw.githubusercontent.com/eldesh/random-mcp/refs/heads/master/icon.svg",
+    "unlisted": false
+}
