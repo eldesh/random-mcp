@@ -144,7 +144,10 @@ npm install
 GITHUB_CLIENT_ID=<GitHub OAuth App の Client ID>
 GITHUB_CLIENT_SECRET=<GitHub OAuth App の Client secret>
 COOKIE_ENCRYPTION_KEY=<Cookie の暗号化に使用するランダムな値>
+GLAMA_MAINTAINER_EMAIL=<Glamaアカウントのメールアドレス>
 ```
+
+`GLAMA_MAINTAINER_EMAIL` は Glama connector の所有権確認にのみ使用します。確認をしない場合は省略できます。
 
 `COOKIE_ENCRYPTION_KEY` は、例えば次のコマンドで生成できます。
 

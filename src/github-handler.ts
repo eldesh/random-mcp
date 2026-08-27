@@ -2,6 +2,7 @@ import { env } from "cloudflare:workers";
 import type { AuthRequest, OAuthHelpers } from "@cloudflare/workers-oauth-provider";
 import { Hono } from "hono";
 import { Octokit } from "octokit";
+import type { Env as WorkerEnv } from "./env";
 import { fetchUpstreamAuthToken, getUpstreamAuthorizeUrl, type Props } from "./utils";
 import { landingPageResponse, preferredLocale } from "./landing-page";
 import {
@@ -16,7 +17,7 @@ import {
 	validateOAuthState,
 } from "./workers-oauth-utils";
 
-const app = new Hono<{ Bindings: Env & { OAUTH_PROVIDER: OAuthHelpers } }>();
+const app = new Hono<{ Bindings: WorkerEnv & { OAUTH_PROVIDER: OAuthHelpers } }>();
 
 const serverIcon = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Random MCP">
@@ -55,6 +56,34 @@ app.get("/icon.svg", () =>
 		},
 	}),
 );
+
+app.get("/.well-known/glama.json", (c) => {
+	const email = c.env.GLAMA_MAINTAINER_EMAIL?.trim();
+
+	if (!email) {
+		return c.json(
+			{
+				error:
+					"GLAMA_MAINTAINER_EMAIL is not configured for claim verification",
+			},
+			503,
+			{
+				"Cache-Control": "no-store",
+			},
+		);
+	}
+
+	return c.json(
+		{
+			$schema: "https://glama.ai/mcp/schemas/connector.json",
+			maintainers: [{ email }],
+		},
+		200,
+		{
+			"Cache-Control": "public, max-age=300",
+		},
+	);
+});
 
 app.get("/authorize", async (c) => {
 	const oauthReqInfo = await c.env.OAUTH_PROVIDER.parseAuthRequest(c.req.raw);
