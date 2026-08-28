@@ -6,18 +6,20 @@ import type { Env as WorkerEnv } from "./env";
 import { fetchUpstreamAuthToken, getUpstreamAuthorizeUrl, type Props } from "./utils";
 import { landingPageResponse, preferredLocale } from "./landing-page";
 import {
-	addApprovedClient,
-	bindStateToSession,
-	createOAuthState,
-	generateCSRFProtection,
-	isClientApproved,
-	OAuthError,
-	renderApprovalDialog,
-	validateCSRFToken,
-	validateOAuthState,
+  addApprovedClient,
+  bindStateToSession,
+  createOAuthState,
+  generateCSRFProtection,
+  isClientApproved,
+  OAuthError,
+  renderApprovalDialog,
+  validateCSRFToken,
+  validateOAuthState,
 } from "./workers-oauth-utils";
 
-const app = new Hono<{ Bindings: WorkerEnv & { OAUTH_PROVIDER: OAuthHelpers } }>();
+const app = new Hono<{
+  Bindings: WorkerEnv & { OAUTH_PROVIDER: OAuthHelpers };
+}>();
 
 const serverIcon = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Random MCP">
@@ -31,16 +33,16 @@ const serverIcon = `
 </svg>`;
 
 app.get("/", (c) => {
-	const locale = preferredLocale(c.req.header("Accept-Language") ?? null);
+  const locale = preferredLocale(c.req.header("Accept-Language") ?? null);
 
-	return new Response(null, {
-		status: 302,
-		headers: {
-			"Cache-Control": "private, no-store",
-			Location: `/${locale}/`,
-			Vary: "Accept-Language",
-		},
-	});
+  return new Response(null, {
+    status: 302,
+    headers: {
+      "Cache-Control": "private, no-store",
+      Location: `/${locale}/`,
+      Vary: "Accept-Language",
+    },
+  });
 });
 
 app.get("/ja", (c) => Response.redirect(new URL("/ja/", c.req.url), 308));
@@ -48,145 +50,144 @@ app.get("/en", (c) => Response.redirect(new URL("/en/", c.req.url), 308));
 app.get("/ja/", (c) => landingPageResponse(c.req.raw, "ja"));
 app.get("/en/", (c) => landingPageResponse(c.req.raw, "en"));
 
-app.get("/icon.svg", () =>
-	new Response(serverIcon, {
-		headers: {
-			"Cache-Control": "public, max-age=86400",
-			"Content-Type": "image/svg+xml; charset=utf-8",
-		},
-	}),
+app.get(
+  "/icon.svg",
+  () =>
+    new Response(serverIcon, {
+      headers: {
+        "Cache-Control": "public, max-age=86400",
+        "Content-Type": "image/svg+xml; charset=utf-8",
+      },
+    }),
 );
 
 app.get("/.well-known/glama.json", (c) => {
-	const email = c.env.GLAMA_MAINTAINER_EMAIL?.trim();
+  const email = c.env.GLAMA_MAINTAINER_EMAIL?.trim();
 
-	if (!email) {
-		return c.json(
-			{
-				error:
-					"GLAMA_MAINTAINER_EMAIL is not configured for claim verification",
-			},
-			503,
-			{
-				"Cache-Control": "no-store",
-			},
-		);
-	}
+  if (!email) {
+    return c.json(
+      {
+        error: "GLAMA_MAINTAINER_EMAIL is not configured for claim verification",
+      },
+      503,
+      {
+        "Cache-Control": "no-store",
+      },
+    );
+  }
 
-	return c.json(
-		{
-			$schema: "https://glama.ai/mcp/schemas/connector.json",
-			maintainers: [{ email }],
-		},
-		200,
-		{
-			"Cache-Control": "public, max-age=300",
-		},
-	);
+  return c.json(
+    {
+      $schema: "https://glama.ai/mcp/schemas/connector.json",
+      maintainers: [{ email }],
+    },
+    200,
+    {
+      "Cache-Control": "public, max-age=300",
+    },
+  );
 });
 
 app.get("/authorize", async (c) => {
-	const oauthReqInfo = await c.env.OAUTH_PROVIDER.parseAuthRequest(c.req.raw);
-	const { clientId } = oauthReqInfo;
-	if (!clientId) {
-		return c.text("Invalid request", 400);
-	}
+  const oauthReqInfo = await c.env.OAUTH_PROVIDER.parseAuthRequest(c.req.raw);
+  const { clientId } = oauthReqInfo;
+  if (!clientId) {
+    return c.text("Invalid request", 400);
+  }
 
-	// Check if client is already approved
-	if (await isClientApproved(c.req.raw, clientId, env.COOKIE_ENCRYPTION_KEY)) {
-		// Skip approval dialog but still create secure state and bind to session
-		const { stateToken } = await createOAuthState(oauthReqInfo, c.env.OAUTH_KV);
-		const { setCookie: sessionBindingCookie } = await bindStateToSession(stateToken);
-		return redirectToGithub(c.req.raw, stateToken, { "Set-Cookie": sessionBindingCookie });
-	}
+  // Check if client is already approved
+  if (await isClientApproved(c.req.raw, clientId, env.COOKIE_ENCRYPTION_KEY)) {
+    // Skip approval dialog but still create secure state and bind to session
+    const { stateToken } = await createOAuthState(oauthReqInfo, c.env.OAUTH_KV);
+    const { setCookie: sessionBindingCookie } = await bindStateToSession(stateToken);
+    return redirectToGithub(c.req.raw, stateToken, {
+      "Set-Cookie": sessionBindingCookie,
+    });
+  }
 
-	// Generate CSRF protection for the approval form
-	const { token: csrfToken, setCookie } = generateCSRFProtection();
+  // Generate CSRF protection for the approval form
+  const { token: csrfToken, setCookie } = generateCSRFProtection();
 
-	return renderApprovalDialog(c.req.raw, {
-		client: await c.env.OAUTH_PROVIDER.lookupClient(clientId),
-		csrfToken,
-		server: {
-			description:
-				"Generate random integers, floating-point values, weighted choices, and samples from probability distributions. GitHub is used to authenticate access.",
-			logo: new URL("/icon.svg", c.req.url).href,
-			name: "Random MCP",
-		},
-		setCookie,
-		state: { oauthReqInfo },
-	});
+  return renderApprovalDialog(c.req.raw, {
+    client: await c.env.OAUTH_PROVIDER.lookupClient(clientId),
+    csrfToken,
+    server: {
+      description:
+        "Generate random integers, floating-point values, weighted choices, and samples from probability distributions. GitHub is used to authenticate access.",
+      logo: new URL("/icon.svg", c.req.url).href,
+      name: "Random MCP",
+    },
+    setCookie,
+    state: { oauthReqInfo },
+  });
 });
 
 app.post("/authorize", async (c) => {
-	try {
-		// Read form data once
-		const formData = await c.req.raw.formData();
+  try {
+    // Read form data once
+    const formData = await c.req.raw.formData();
 
-		// Validate CSRF token
-		validateCSRFToken(formData, c.req.raw);
+    // Validate CSRF token
+    validateCSRFToken(formData, c.req.raw);
 
-		// Extract state from form data
-		const encodedState = formData.get("state");
-		if (!encodedState || typeof encodedState !== "string") {
-			return c.text("Missing state in form data", 400);
-		}
+    // Extract state from form data
+    const encodedState = formData.get("state");
+    if (!encodedState || typeof encodedState !== "string") {
+      return c.text("Missing state in form data", 400);
+    }
 
-		let state: { oauthReqInfo?: AuthRequest };
-		try {
-			state = JSON.parse(atob(encodedState));
-		} catch (_e) {
-			return c.text("Invalid state data", 400);
-		}
+    let state: { oauthReqInfo?: AuthRequest };
+    try {
+      state = JSON.parse(atob(encodedState));
+    } catch (_e) {
+      return c.text("Invalid state data", 400);
+    }
 
-		if (!state.oauthReqInfo || !state.oauthReqInfo.clientId) {
-			return c.text("Invalid request", 400);
-		}
+    if (!state.oauthReqInfo || !state.oauthReqInfo.clientId) {
+      return c.text("Invalid request", 400);
+    }
 
-		// Add client to approved list
-		const approvedClientCookie = await addApprovedClient(
-			c.req.raw,
-			state.oauthReqInfo.clientId,
-			c.env.COOKIE_ENCRYPTION_KEY,
-		);
+    // Add client to approved list
+    const approvedClientCookie = await addApprovedClient(
+      c.req.raw,
+      state.oauthReqInfo.clientId,
+      c.env.COOKIE_ENCRYPTION_KEY,
+    );
 
-		// Create OAuth state and bind it to this user's session
-		const { stateToken } = await createOAuthState(state.oauthReqInfo, c.env.OAUTH_KV);
-		const { setCookie: sessionBindingCookie } = await bindStateToSession(stateToken);
+    // Create OAuth state and bind it to this user's session
+    const { stateToken } = await createOAuthState(state.oauthReqInfo, c.env.OAUTH_KV);
+    const { setCookie: sessionBindingCookie } = await bindStateToSession(stateToken);
 
-		// Set both cookies: approved client list + session binding
-		const headers = new Headers();
-		headers.append("Set-Cookie", approvedClientCookie);
-		headers.append("Set-Cookie", sessionBindingCookie);
+    // Set both cookies: approved client list + session binding
+    const headers = new Headers();
+    headers.append("Set-Cookie", approvedClientCookie);
+    headers.append("Set-Cookie", sessionBindingCookie);
 
-		return redirectToGithub(c.req.raw, stateToken, Object.fromEntries(headers));
-	} catch (error: any) {
-		console.error("POST /authorize error:", error);
-		if (error instanceof OAuthError) {
-			return error.toResponse();
-		}
-		// Unexpected non-OAuth error
-		return c.text(`Internal server error: ${error.message}`, 500);
-	}
+    return redirectToGithub(c.req.raw, stateToken, Object.fromEntries(headers));
+  } catch (error: any) {
+    console.error("POST /authorize error:", error);
+    if (error instanceof OAuthError) {
+      return error.toResponse();
+    }
+    // Unexpected non-OAuth error
+    return c.text(`Internal server error: ${error.message}`, 500);
+  }
 });
 
-async function redirectToGithub(
-	request: Request,
-	stateToken: string,
-	headers: Record<string, string> = {},
-) {
-	return new Response(null, {
-		headers: {
-			...headers,
-			location: getUpstreamAuthorizeUrl({
-				client_id: env.GITHUB_CLIENT_ID,
-				redirect_uri: new URL("/callback", request.url).href,
-				scope: "read:user",
-				state: stateToken,
-				upstream_url: "https://github.com/login/oauth/authorize",
-			}),
-		},
-		status: 302,
-	});
+async function redirectToGithub(request: Request, stateToken: string, headers: Record<string, string> = {}) {
+  return new Response(null, {
+    headers: {
+      ...headers,
+      location: getUpstreamAuthorizeUrl({
+        client_id: env.GITHUB_CLIENT_ID,
+        redirect_uri: new URL("/callback", request.url).href,
+        scope: "read:user",
+        state: stateToken,
+        upstream_url: "https://github.com/login/oauth/authorize",
+      }),
+    },
+    status: 302,
+  });
 }
 
 /**
@@ -206,68 +207,70 @@ async function redirectToGithub(
  * into a victim's OAuth flow.
  */
 app.get("/callback", async (c) => {
-	// Validate OAuth state with session binding
-	// This checks both KV storage AND the session cookie
-	let oauthReqInfo: AuthRequest;
-	let clearSessionCookie: string;
+  // Validate OAuth state with session binding
+  // This checks both KV storage AND the session cookie
+  let oauthReqInfo: AuthRequest;
+  let clearSessionCookie: string;
 
-	try {
-		const result = await validateOAuthState(c.req.raw, c.env.OAUTH_KV);
-		oauthReqInfo = result.oauthReqInfo;
-		clearSessionCookie = result.clearCookie;
-	} catch (error: any) {
-		if (error instanceof OAuthError) {
-			return error.toResponse();
-		}
-		// Unexpected non-OAuth error
-		return c.text("Internal server error", 500);
-	}
+  try {
+    const result = await validateOAuthState(c.req.raw, c.env.OAUTH_KV);
+    oauthReqInfo = result.oauthReqInfo;
+    clearSessionCookie = result.clearCookie;
+  } catch (error: any) {
+    if (error instanceof OAuthError) {
+      return error.toResponse();
+    }
+    // Unexpected non-OAuth error
+    return c.text("Internal server error", 500);
+  }
 
-	if (!oauthReqInfo.clientId) {
-		return c.text("Invalid OAuth request data", 400);
-	}
+  if (!oauthReqInfo.clientId) {
+    return c.text("Invalid OAuth request data", 400);
+  }
 
-	// Exchange the code for an access token
-	const [accessToken, errResponse] = await fetchUpstreamAuthToken({
-		client_id: c.env.GITHUB_CLIENT_ID,
-		client_secret: c.env.GITHUB_CLIENT_SECRET,
-		code: c.req.query("code"),
-		redirect_uri: new URL("/callback", c.req.url).href,
-		upstream_url: "https://github.com/login/oauth/access_token",
-	});
-	if (errResponse) return errResponse;
+  // Exchange the code for an access token
+  const [accessToken, errResponse] = await fetchUpstreamAuthToken({
+    client_id: c.env.GITHUB_CLIENT_ID,
+    client_secret: c.env.GITHUB_CLIENT_SECRET,
+    code: c.req.query("code"),
+    redirect_uri: new URL("/callback", c.req.url).href,
+    upstream_url: "https://github.com/login/oauth/access_token",
+  });
+  if (errResponse) return errResponse;
 
-	// Fetch the user info from GitHub
-	const user = await new Octokit({ auth: accessToken }).rest.users.getAuthenticated();
-	const { login, name, email } = user.data;
+  // Fetch the user info from GitHub
+  const user = await new Octokit({
+    auth: accessToken,
+  }).rest.users.getAuthenticated();
+  const { login, name, email } = user.data;
 
-	// Return back to the MCP client a new token
-	const { redirectTo } = await c.env.OAUTH_PROVIDER.completeAuthorization({
-		metadata: {
-			label: name,
-		},
-		// This will be available on this.props inside MyMCP
-		props: {
-			accessToken,
-			email,
-			login,
-			name,
-		} as Props,
-		request: oauthReqInfo,
-		scope: oauthReqInfo.scope,
-		userId: login,
-	});
+  // Return back to the MCP client a new token
+  const { redirectTo } = await c.env.OAUTH_PROVIDER.completeAuthorization({
+    metadata: {
+      label: name,
+    },
+    // This will be available on this.props inside MyMCP
+    props: {
+      accessToken,
+      email,
+      login,
+      name,
+    } as Props,
+    request: oauthReqInfo,
+    scope: oauthReqInfo.scope,
+    userId: login,
+  });
 
-	// Clear the session binding cookie (one-time use) by creating response with headers
-	const headers = new Headers({ Location: redirectTo });
-	if (clearSessionCookie) {
-		headers.set("Set-Cookie", clearSessionCookie);
-	}
+  // Clear the session binding cookie (one-time use) by creating response with headers
+  const headers = new Headers({ Location: redirectTo });
+  if (clearSessionCookie) {
+    headers.set("Set-Cookie", clearSessionCookie);
+  }
 
-	return new Response(null, {
-		status: 302,
-		headers,
-	});
+  return new Response(null, {
+    status: 302,
+    headers,
+  });
 });
 
 export { app as GitHubHandler };

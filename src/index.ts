@@ -1,21 +1,13 @@
-import {
-  OAuthProvider,
-} from "@cloudflare/workers-oauth-provider";
+import { OAuthProvider } from "@cloudflare/workers-oauth-provider";
 import { McpServer } from "@modelcontextprotocol/server";
 import { createMcpHandler } from "agents/mcp/server";
 import { z } from "zod";
 import packageJson from "../package.json";
 import type { Env } from "./env";
 import { GitHubHandler } from "./github-handler";
-import {
-  batchCountSchema,
-  randomChoiceInputSchema,
-} from "./input-schemas";
+import { batchCountSchema, randomChoiceInputSchema } from "./input-schemas";
 import { sumWeights } from "./random-choice";
-import {
-  lognormalFromNormalValue,
-  randomDoubleFromUnitInterval,
-} from "./random-double";
+import { lognormalFromNormalValue, randomDoubleFromUnitInterval } from "./random-double";
 
 const TWO_POW_53 = 9_007_199_254_740_992;
 
@@ -45,11 +37,7 @@ function randomIntInclusive(min: number, max: number): number {
 
   const span = max - min + 1;
 
-  if (
-    !Number.isInteger(span) ||
-    span <= 0 ||
-    span > TWO_POW_53
-  ) {
+  if (!Number.isInteger(span) || span <= 0 || span > TWO_POW_53) {
     throw new Error("integer range is too large");
   }
 
@@ -83,12 +71,7 @@ function normal(mean: number, standardDeviation: number): number {
 
   const v = unitRandom();
 
-  return (
-    mean +
-    standardDeviation *
-      Math.sqrt(-2 * Math.log(u)) *
-      Math.cos(2 * Math.PI * v)
-  );
+  return mean + standardDeviation * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 
 const integerValuesOutputSchema = z.object({
@@ -104,14 +87,16 @@ const stringValuesOutputSchema = z.object({
 });
 
 const randomIntInputSchema = z.union([
-  z.object({
-    distribution: z.literal("uniform").default("uniform"),
-    min: z.number().int(),
-    max: z.number().int(),
-    count: batchCountSchema.default(1),
-  }).refine(({ min, max }) => min <= max, {
-    message: "min must be less than or equal to max",
-  }),
+  z
+    .object({
+      distribution: z.literal("uniform").default("uniform"),
+      min: z.number().int(),
+      max: z.number().int(),
+      count: batchCountSchema.default(1),
+    })
+    .refine(({ min, max }) => min <= max, {
+      message: "min must be less than or equal to max",
+    }),
   z.object({
     distribution: z.literal("bernoulli"),
     probability: z.number().finite().min(0).max(1),
@@ -133,14 +118,16 @@ const randomIntInputSchema = z.union([
 type RandomIntInput = z.infer<typeof randomIntInputSchema>;
 
 const randomDoubleInputSchema = z.union([
-  z.object({
-    distribution: z.literal("uniform").default("uniform"),
-    min: z.number().finite(),
-    max: z.number().finite(),
-    count: batchCountSchema.default(1),
-  }).refine(({ min, max }) => min < max, {
-    message: "min must be less than max",
-  }),
+  z
+    .object({
+      distribution: z.literal("uniform").default("uniform"),
+      min: z.number().finite(),
+      max: z.number().finite(),
+      count: batchCountSchema.default(1),
+    })
+    .refine(({ min, max }) => min < max, {
+      message: "min must be less than max",
+    }),
   z.object({
     distribution: z.literal("normal"),
     mean: z.number().finite(),
@@ -162,10 +149,7 @@ const randomDoubleInputSchema = z.union([
 
 type RandomDoubleInput = z.infer<typeof randomDoubleInputSchema>;
 
-function weightedChoiceIndex(
-  length: number,
-  weighted?: { weights: number[]; total: number },
-): number {
+function weightedChoiceIndex(length: number, weighted?: { weights: number[]; total: number }): number {
   if (weighted === undefined) {
     return randomIntInclusive(0, length - 1);
   }
@@ -185,21 +169,11 @@ function weightedChoiceIndex(
   return lastPositiveIndex;
 }
 
-function randomChoices(
-  choices: string[],
-  count: number,
-  withReplacement: boolean,
-  weights?: number[],
-): string[] {
+function randomChoices(choices: string[], count: number, withReplacement: boolean, weights?: number[]): string[] {
   if (withReplacement) {
-    const weighted = weights === undefined
-      ? undefined
-      : { weights, total: sumWeights(weights) };
+    const weighted = weights === undefined ? undefined : { weights, total: sumWeights(weights) };
 
-    return Array.from(
-      { length: count },
-      () => choices[weightedChoiceIndex(choices.length, weighted)],
-    );
+    return Array.from({ length: count }, () => choices[weightedChoiceIndex(choices.length, weighted)]);
   }
 
   const remainingChoices = [...choices];
@@ -207,16 +181,14 @@ function randomChoices(
   const values: string[] = [];
 
   for (let i = 0; i < count; i++) {
-    const weighted = remainingWeights === undefined
-      ? undefined
-      : {
-        weights: remainingWeights,
-        total: sumWeights(remainingWeights),
-      };
-    const index = weightedChoiceIndex(
-      remainingChoices.length,
-      weighted,
-    );
+    const weighted =
+      remainingWeights === undefined
+        ? undefined
+        : {
+            weights: remainingWeights,
+            total: sumWeights(remainingWeights),
+          };
+    const index = weightedChoiceIndex(remainingChoices.length, weighted);
     values.push(remainingChoices[index]);
     remainingChoices.splice(index, 1);
     remainingWeights?.splice(index, 1);
@@ -322,29 +294,16 @@ function createServer() {
       outputSchema: integerValuesOutputSchema,
     },
     async (input) => {
-      if (
-        input.distribution === "binomial" &&
-        input.trials * input.count > 100_000
-      ) {
-        throw new Error(
-          "trials multiplied by count must not exceed 100000",
-        );
+      if (input.distribution === "binomial" && input.trials * input.count > 100_000) {
+        throw new Error("trials multiplied by count must not exceed 100000");
       }
 
-      if (
-        input.distribution === "poisson" &&
-        input.lambda * input.count > 10_000
-      ) {
-        throw new Error(
-          "lambda multiplied by count must not exceed 10000",
-        );
+      if (input.distribution === "poisson" && input.lambda * input.count > 10_000) {
+        throw new Error("lambda multiplied by count must not exceed 10000");
       }
 
       return result({
-        values: Array.from(
-          { length: input.count },
-          () => randomIntValue(input),
-        ),
+        values: Array.from({ length: input.count }, () => randomIntValue(input)),
       });
     },
   );
@@ -366,10 +325,7 @@ function createServer() {
     },
     async (input) =>
       result({
-        values: Array.from(
-          { length: input.count },
-          () => randomDoubleFromDistribution(input),
-        ),
+        values: Array.from({ length: input.count }, () => randomDoubleFromDistribution(input)),
       }),
   );
 
@@ -383,12 +339,7 @@ function createServer() {
     },
     async ({ choices, weights, count, with_replacement }) =>
       result({
-        values: randomChoices(
-          choices,
-          count,
-          with_replacement,
-          weights,
-        ),
+        values: randomChoices(choices, count, with_replacement, weights),
       }),
   );
 
@@ -400,11 +351,7 @@ const mcpHandler = createMcpHandler(createServer, {
 });
 
 const mcpApiHandler = {
-  async fetch(
-    request: Request,
-    env: Env,
-    ctx: ExecutionContext,
-  ): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     return mcpHandler(request, env, ctx);
   },
 };
@@ -422,5 +369,5 @@ export default new OAuthProvider<Env>({
   resourceMetadata: {
     scopes_supported: ["mcp:use"],
     resource_name: "random-mcp",
-  }
+  },
 });

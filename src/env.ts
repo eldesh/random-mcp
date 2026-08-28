@@ -1,5 +1,4 @@
-import type { OAuthHelpers } from
-  "@cloudflare/workers-oauth-provider";
+import type { OAuthHelpers } from "@cloudflare/workers-oauth-provider";
 
 export interface Env extends Cloudflare.Env {
   OAUTH_PROVIDER: OAuthHelpers;

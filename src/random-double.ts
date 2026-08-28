@@ -16,11 +16,7 @@ function nextDown(value: number): number {
   return data.getFloat64(0);
 }
 
-export function randomDoubleFromUnitInterval(
-  min: number,
-  max: number,
-  unit: number,
-): number {
+export function randomDoubleFromUnitInterval(min: number, max: number, unit: number): number {
   if (!Number.isFinite(min) || !Number.isFinite(max) || min >= max) {
     throw new Error("min and max must be finite and min < max");
   }

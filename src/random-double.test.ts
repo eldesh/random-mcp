@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  lognormalFromNormalValue,
-  randomDoubleFromUnitInterval,
-} from "./random-double.ts";
+import { lognormalFromNormalValue, randomDoubleFromUnitInterval } from "./random-double.ts";
 
 const MAX_UNIT_RANDOM = (2 ** 53 - 1) / 2 ** 53;
 

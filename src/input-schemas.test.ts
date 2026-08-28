@@ -19,9 +19,7 @@ test("randomChoiceInputSchema requires one weight per choice", () => {
 
   assert.equal(result.success, false);
   if (!result.success) {
-    assert.ok(result.error.issues.some(
-      ({ message }) => message === "weights must have the same length as choices",
-    ));
+    assert.ok(result.error.issues.some(({ message }) => message === "weights must have the same length as choices"));
   }
 });
 

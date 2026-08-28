@@ -1,26 +1,23 @@
 {
-	"$schema": "./node_modules/wrangler/config-schema.json",
-	"name": "random-mcp",
-	"main": "src/index.ts",
-	"compatibility_date": "2026-08-15",
-	"compatibility_flags": [
-		"nodejs_compat",
-		"global_fetch_strictly_public"
-	],
-	"rules": [
-		{
-			"type": "Text",
-			"globs": ["**/*.css"],
-			"fallthrough": true
-		}
-	],
-	"kv_namespaces": [
-		{
-			"binding": "OAUTH_KV",
-			"id": "dd09204ee36c470390d6e02e2081186a"
-		}
-	],
-	"observability": {
-		"enabled": false
-	}
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "random-mcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-15",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "rules": [
+    {
+      "type": "Text",
+      "globs": ["**/*.css"],
+      "fallthrough": true,
+    },
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "OAUTH_KV",
+      "id": "dd09204ee36c470390d6e02e2081186a",
+    },
+  ],
+  "observability": {
+    "enabled": false,
+  },
 }
