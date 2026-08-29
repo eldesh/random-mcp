@@ -1,12 +1,10 @@
 #!/bin/sh
-set -eux
+set -eu
 
 # Update Smithery server metadata using the Smithery API.
 #
 # https://smithery.ai/docs/api-reference/servers/update-a-server
 
-SMITHERY_API_KEY=${1:?"Missing Smithery API key argument. Usage: $0 <smithery_api_key>"}
-shift
 API_BODY=@-
 if [ $# -ne 0 ]; then
   API_BODY=@$1
