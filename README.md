@@ -3,6 +3,7 @@
 </p>
 
 [![Random MCP on mcprush](https://mcprush.com/badge/random-mcp/score.svg)](https://mcprush.com/to/random-mcp?ref=badge)
+[![mcptry](https://mcptry.com/badge/io.github.eldesh/random-mcp)](https://mcptry.com/servers/io.github.eldesh/random-mcp)
 
 # random-mcp
 
